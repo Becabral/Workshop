@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import {
   Truck,
   Package,
@@ -95,7 +96,8 @@ function MudancaCard({ mudanca }: { mudanca: Mudanca }) {
   const statusStyle = STATUS_STYLES[mudanca.status];
 
   return (
-    <Card className="group border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+    <Link href={`/dashboard/mudanca/${mudanca.id}`}>
+    <Card className="group cursor-pointer border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
       <CardHeader className="flex flex-row items-start justify-between gap-4 pb-3">
         <Badge
           variant="outline"
@@ -103,14 +105,10 @@ function MudancaCard({ mudanca }: { mudanca: Mudanca }) {
         >
           {statusStyle.label}
         </Badge>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2 text-xs text-gray-400 opacity-0 transition-opacity group-hover:opacity-100"
-        >
+        <span className="inline-flex items-center h-7 px-2 text-xs text-gray-400 opacity-0 transition-opacity group-hover:opacity-100">
           Ver detalhes
           <ArrowRight className="ml-1 h-3 w-3" />
-        </Button>
+        </span>
       </CardHeader>
 
       <CardContent className="space-y-3">
@@ -152,6 +150,7 @@ function MudancaCard({ mudanca }: { mudanca: Mudanca }) {
         </div>
       </CardContent>
     </Card>
+    </Link>
   );
 }
 
@@ -196,10 +195,12 @@ export default function DashboardPage() {
           limit={freeLimit}
           isBlocked={isAtLimit}
         >
-          <Button className="gap-2 bg-[#2563EB] text-white hover:bg-blue-700">
-            <Plus className="h-4 w-4" />
-            Nova Mudança
-          </Button>
+          <Link href="/dashboard/nova-mudanca">
+            <Button className="gap-2 bg-[#2563EB] text-white hover:bg-blue-700">
+              <Plus className="h-4 w-4" />
+              Nova Mudança
+            </Button>
+          </Link>
         </PaywallGate>
       </div>
 
@@ -213,10 +214,12 @@ export default function DashboardPage() {
           <p className="mt-1 text-sm text-gray-500">
             Crie sua primeira mudança para começar a receber cotações.
           </p>
-          <Button className="mt-6 gap-2 bg-[#2563EB] text-white hover:bg-blue-700">
-            <Plus className="h-4 w-4" />
-            Nova Mudança
-          </Button>
+          <Link href="/dashboard/nova-mudanca">
+            <Button className="mt-6 gap-2 bg-[#2563EB] text-white hover:bg-blue-700">
+              <Plus className="h-4 w-4" />
+              Nova Mudança
+            </Button>
+          </Link>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

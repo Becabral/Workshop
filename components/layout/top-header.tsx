@@ -2,12 +2,12 @@
 
 import { useSession } from "next-auth/react";
 import {
-  LayoutGrid,
-  Flame,
+  Truck,
   Search,
   HelpCircle,
   Settings,
   Bell,
+  Plus,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
@@ -17,14 +17,14 @@ export function TopHeader() {
 
   return (
     <header className="flex h-16 shrink-0 items-center border-b border-[#E5E9EB] bg-white px-6">
-      {/* Left icons */}
+      {/* Left icon */}
       <div className="flex items-center gap-1">
-        <button className="flex h-8 w-8 items-center justify-center rounded-md text-[#6E7C87] hover:bg-[#F6F8F9]">
-          <LayoutGrid className="h-6 w-6" />
-        </button>
-        <button className="flex h-8 w-8 items-center justify-center rounded-md text-[#6E7C87] hover:bg-[#F6F8F9]">
-          <Flame className="h-6 w-6" />
-        </button>
+        <Link
+          href="/dashboard"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-[#2563EB] hover:bg-[#F6F8F9]"
+        >
+          <Truck className="h-6 w-6" />
+        </Link>
       </div>
 
       {/* Center tabs */}
@@ -33,11 +33,15 @@ export function TopHeader() {
           href="/dashboard"
           className="rounded-md px-3 py-1 text-sm leading-6 tracking-[-0.084px] text-[#252C32] hover:bg-[#F6F8F9]"
         >
-          Minhas tarefas
+          Minhas Mudanças
         </Link>
-        <button className="rounded-md border border-[#DDE2E4] bg-white px-3 py-1 text-sm leading-6 tracking-[-0.084px] text-[#252C32] hover:bg-[#F6F8F9]">
-          Criar lista
-        </button>
+        <Link
+          href="/dashboard/nova-mudanca"
+          className="flex items-center gap-1 rounded-md border border-[#DDE2E4] bg-white px-3 py-1 text-sm leading-6 tracking-[-0.084px] text-[#252C32] hover:bg-[#F6F8F9]"
+        >
+          <Plus className="h-4 w-4" />
+          Nova Mudança
+        </Link>
       </div>
 
       {/* Spacer */}
@@ -50,8 +54,8 @@ export function TopHeader() {
           <Search className="absolute left-2 top-1/2 h-5 w-5 -translate-y-1/2 text-[#9AA6AC]" />
           <input
             type="text"
-            placeholder="Search"
-            className="h-8 w-[200px] rounded-md border border-[#DDE2E4] bg-white pl-8 pr-3 text-sm leading-6 tracking-[-0.084px] text-[#252C32] placeholder:text-[#9AA6AC] focus:border-[#4094F7] focus:outline-none"
+            placeholder="Buscar"
+            className="h-8 w-[200px] rounded-md border border-[#DDE2E4] bg-white pl-8 pr-3 text-sm leading-6 tracking-[-0.084px] text-[#252C32] placeholder:text-[#9AA6AC] focus:border-[#2563EB] focus:outline-none"
           />
         </div>
 
@@ -74,7 +78,7 @@ export function TopHeader() {
               src={session.user.image || ""}
               alt={session.user.name || ""}
             />
-            <AvatarFallback className="bg-[#D7EDFF] text-[10px] font-semibold text-[#0452C8]">
+            <AvatarFallback className="bg-[#DBEAFE] text-[10px] font-semibold text-[#2563EB]">
               {session.user.name
                 ?.split(" ")
                 .map((n) => n[0])
