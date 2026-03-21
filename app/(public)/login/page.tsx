@@ -58,7 +58,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <Link href="/" className="mx-auto mb-4 flex items-center gap-2">
-            <Truck className="h-8 w-8 text-[#2563EB]" />
+            <Truck className="h-8 w-8 text-[#F37021]" />
             <span className="text-2xl font-bold">MudaFácil</span>
           </Link>
           <CardTitle>Entrar na sua conta</CardTitle>
@@ -119,7 +119,7 @@ export default function LoginPage() {
             </div>
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-[#F37021] hover:bg-[#D85E1A]"
               disabled={isLoading}
             >
               {isLoading ? (

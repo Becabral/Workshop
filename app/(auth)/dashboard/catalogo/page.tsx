@@ -130,14 +130,14 @@ function ItemCard({
           </div>
           <div className="flex items-center justify-between text-xs">
             <span className="text-gray-500">Volume</span>
-            <span className="font-medium text-[#2563EB]">{item.volume} m³</span>
+            <span className="font-medium text-[#F37021]">{item.volume} m³</span>
           </div>
         </div>
 
         <Button
           variant="outline"
           size="sm"
-          className="w-full h-7 text-xs border-gray-200 text-gray-600 hover:border-[#2563EB] hover:text-[#2563EB] mt-1"
+          className="w-full h-7 text-xs border-gray-200 text-gray-600 hover:border-[#F37021] hover:text-[#F37021] mt-1"
           onClick={() => onAdd(item)}
         >
           Adicionar à mudança
@@ -219,7 +219,7 @@ export default function CatalogoPage() {
               onClick={() => setActiveCategory(cat)}
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 activeCategory === cat
-                  ? "bg-[#2563EB] text-white"
+                  ? "bg-[#F37021] text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
@@ -247,7 +247,7 @@ export default function CatalogoPage() {
               setSearch("");
               setActiveCategory("Todos");
             }}
-            className="mt-3 text-xs text-[#2563EB] hover:underline"
+            className="mt-3 text-xs text-[#F37021] hover:underline"
           >
             Limpar filtros
           </button>
@@ -279,9 +279,9 @@ export default function CatalogoPage() {
               <button
                 key={mudanca.id}
                 onClick={() => handleSelectMudanca(mudanca)}
-                className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 text-left transition-colors hover:border-[#2563EB] hover:bg-blue-50/50"
+                className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 text-left transition-colors hover:border-[#F37021] hover:bg-orange-50/50"
               >
-                <Truck className="mt-0.5 h-5 w-5 shrink-0 text-[#2563EB]" />
+                <Truck className="mt-0.5 h-5 w-5 shrink-0 text-[#F37021]" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="h-3 w-3 shrink-0 text-gray-400" />

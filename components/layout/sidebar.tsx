@@ -41,7 +41,7 @@ export function Sidebar() {
     <aside className="flex h-full w-[240px] shrink-0 flex-col border-r border-[#E5E9EB] bg-[#F6F8F9]">
       {/* Project header */}
       <div className="flex items-center gap-2 px-4 pt-4 pb-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#2563EB] text-white">
+        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#F37021] text-white">
           <AtSign className="h-5 w-5" />
         </div>
         <div className="flex flex-col">
@@ -56,25 +56,30 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex flex-1 flex-col gap-0 px-4">
-        {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-          const Icon = item.icon;
+        <div className="flex flex-col gap-2">
+          {NAV_ITEMS.map((item) => {
+            const isExactDashboard = item.href === "/dashboard";
+            const isActive = isExactDashboard
+              ? pathname === "/dashboard"
+              : pathname === item.href || pathname.startsWith(item.href + "/");
+            const Icon = item.icon;
 
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={`flex items-center gap-2 rounded-md px-2 py-1 text-sm tracking-[-0.084px] transition-colors ${
-                isActive
-                  ? "bg-[#DBEAFE] font-semibold text-[#2563EB]"
-                  : "font-normal text-[#252C32] hover:bg-[#E5E9EB]"
-              }`}
-            >
-              <Icon className="h-6 w-6 shrink-0" />
-              <span className="leading-6">{item.label}</span>
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`flex items-center gap-2 rounded-md px-2 py-1 text-sm tracking-[-0.084px] transition-colors ${
+                  isActive
+                    ? "bg-[#FDE8D8] font-semibold text-[#F37021]"
+                    : "font-normal text-[#252C32] hover:bg-[#E5E9EB]"
+                }`}
+              >
+                <Icon className="h-6 w-6 shrink-0" />
+                <span className="leading-6">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
 
         {/* Divider */}
         <div className="my-2 h-px bg-[#E5E9EB]" />
@@ -89,7 +94,7 @@ export function Sidebar() {
               href={item.href}
               className={`flex items-center gap-2 rounded-md px-2 py-1 text-sm tracking-[-0.084px] transition-colors ${
                 isActive
-                  ? "bg-[#DBEAFE] font-semibold text-[#2563EB]"
+                  ? "bg-[#FDE8D8] font-semibold text-[#F37021]"
                   : "font-normal text-[#252C32] hover:bg-[#E5E9EB]"
               }`}
             >
@@ -109,7 +114,7 @@ export function Sidebar() {
                 src={session.user.image || ""}
                 alt={session.user.name || ""}
               />
-              <AvatarFallback className="bg-[#DBEAFE] text-xs font-semibold text-[#2563EB]">
+              <AvatarFallback className="bg-[#FDE8D8] text-xs font-semibold text-[#F37021]">
                 {session.user.name
                   ?.split(" ")
                   .map((n) => n[0])

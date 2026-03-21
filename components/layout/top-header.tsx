@@ -21,7 +21,7 @@ export function TopHeader() {
       <div className="flex items-center gap-1">
         <Link
           href="/dashboard"
-          className="flex h-8 w-8 items-center justify-center rounded-md text-[#2563EB] hover:bg-[#F6F8F9]"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-[#F37021] hover:bg-[#F6F8F9]"
         >
           <Truck className="h-6 w-6" />
         </Link>
@@ -55,7 +55,7 @@ export function TopHeader() {
           <input
             type="text"
             placeholder="Buscar"
-            className="h-8 w-[200px] rounded-md border border-[#DDE2E4] bg-white pl-8 pr-3 text-sm leading-6 tracking-[-0.084px] text-[#252C32] placeholder:text-[#9AA6AC] focus:border-[#2563EB] focus:outline-none"
+            className="h-8 w-[200px] rounded-md border border-[#DDE2E4] bg-white pl-8 pr-3 text-sm leading-6 tracking-[-0.084px] text-[#252C32] placeholder:text-[#9AA6AC] focus:border-[#F37021] focus:outline-none"
           />
         </div>
 
@@ -78,7 +78,7 @@ export function TopHeader() {
               src={session.user.image || ""}
               alt={session.user.name || ""}
             />
-            <AvatarFallback className="bg-[#DBEAFE] text-[10px] font-semibold text-[#2563EB]">
+            <AvatarFallback className="bg-[#FDE8D8] text-[10px] font-semibold text-[#F37021]">
               {session.user.name
                 ?.split(" ")
                 .map((n) => n[0])

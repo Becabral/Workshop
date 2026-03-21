@@ -22,7 +22,7 @@ export function Navbar() {
     <nav className="border-b bg-white">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
         <Link href={session ? "/dashboard" : "/"} className="flex items-center gap-2">
-          <Truck className="h-6 w-6 text-[#2563EB]" />
+          <Truck className="h-6 w-6 text-[#F37021]" />
           <span className="text-lg font-bold">MudaFácil</span>
         </Link>
 
@@ -86,7 +86,7 @@ export function Navbar() {
               <Button variant="ghost">Entrar</Button>
             </Link>
             <Link href="/login">
-              <Button className="bg-[#2563EB] hover:bg-blue-700">
+              <Button className="bg-[#F37021] hover:bg-[#D85E1A]">
                 Comece grátis
               </Button>
             </Link>

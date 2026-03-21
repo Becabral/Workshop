@@ -115,7 +115,7 @@ function MudancaCard({ mudanca }: { mudanca: Mudanca }) {
         {/* Origin → Destination */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-start gap-2 text-sm text-gray-700">
-            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#2563EB]" />
+            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#F37021]" />
             <span className="leading-snug">{mudanca.enderecoOrigem}</span>
           </div>
           <div className="ml-6 flex items-center gap-1.5 text-xs text-gray-400">
@@ -129,12 +129,12 @@ function MudancaCard({ mudanca }: { mudanca: Mudanca }) {
         {/* Meta row */}
         <div className="flex flex-wrap items-center gap-4 border-t border-gray-100 pt-3">
           <div className="flex items-center gap-1.5 text-xs text-gray-500">
-            <Calendar className="h-3.5 w-3.5 text-[#F59E0B]" />
+            <Calendar className="h-3.5 w-3.5 text-[#1B1660]" />
             <span>{formatDate(mudanca.dataDesejada)}</span>
           </div>
 
           <div className="flex items-center gap-1.5 text-xs text-gray-500">
-            <Package className="h-3.5 w-3.5 text-[#2563EB]" />
+            <Package className="h-3.5 w-3.5 text-[#F37021]" />
             <span>
               {mudanca.numeroItens}{" "}
               {mudanca.numeroItens === 1 ? "item" : "itens"}
@@ -162,7 +162,7 @@ export default function DashboardPage() {
   if (status === "loading") {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-[#2563EB]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#F37021]" />
       </div>
     );
   }
@@ -196,7 +196,7 @@ export default function DashboardPage() {
           isBlocked={isAtLimit}
         >
           <Link href="/dashboard/nova-mudanca">
-            <Button className="gap-2 bg-[#2563EB] text-white hover:bg-blue-700">
+            <Button className="gap-2 bg-[#F37021] text-white hover:bg-[#D85E1A]">
               <Plus className="h-4 w-4" />
               Nova Mudança
             </Button>
@@ -215,7 +215,7 @@ export default function DashboardPage() {
             Crie sua primeira mudança para começar a receber cotações.
           </p>
           <Link href="/dashboard/nova-mudanca">
-            <Button className="mt-6 gap-2 bg-[#2563EB] text-white hover:bg-blue-700">
+            <Button className="mt-6 gap-2 bg-[#F37021] text-white hover:bg-[#D85E1A]">
               <Plus className="h-4 w-4" />
               Nova Mudança
             </Button>
