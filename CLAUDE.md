@@ -1,6 +1,6 @@
-# TaskFlow — Claude Code Context
+# MudaFácil — Claude Code Context
 
-This is a Next.js 14+ SaaS MVP boilerplate with authentication, payments, and a task management product.
+This is a Next.js 14+ SaaS MVP for moving/relocation planning with interactive cargo visualization.
 
 ## Project Conventions
 
@@ -25,7 +25,7 @@ This is a Next.js 14+ SaaS MVP boilerplate with authentication, payments, and a 
 ## Key Files
 
 - `lib/auth.ts` — NextAuth config, JWT callbacks, user creation with trial
-- `lib/subscription.ts` — Plan limits, trial/subscription checks
+- `lib/subscription.ts` — Plan limits (mudancasAtivas, itensNoCanvas, cotacoesPorMudanca)
 - `lib/stripe.ts` — Checkout sessions, customer portal
 - `lib/validations.ts` — Zod schemas for all inputs
 - `prisma/schema.prisma` — Database schema
@@ -33,44 +33,32 @@ This is a Next.js 14+ SaaS MVP boilerplate with authentication, payments, and a 
 
 ## Plan System
 
-- **FREE:** Limited features (defined in PLAN_LIMITS)
+- **FREE:** 1 mudança ativa, 15 itens no canvas, 3 cotações por mudança, sem filtros avançados
 - **TRIAL:** 14 days, unlimited access, starts on first signup
-- **PRO:** Paid via Stripe, unlimited access
-- **Upgrade during trial:** Users can upgrade immediately during trial. Stripe checkout does NOT set `trial_period_days`, so payment is immediate. Webhook sets `plan: "PRO"`.
+- **PRO:** Unlimited — R$ 29,90/mês
+- **Upgrade during trial:** Users can upgrade immediately. Stripe checkout does NOT set `trial_period_days`, so payment is immediate.
 
-## First-Time Setup Guide
+## Product Entities
 
-When a new user clones this repo and runs Claude Code for the first time, guide them through setup if `.env` is missing or empty. Follow this order:
+- **Item** — Catálogo de móveis/objetos com dimensões e peso
+- **Caminhao** — Tipos de veículo (Fiorino, HR, 3/4, Baú) com capacidade
+- **Transportadora** — Empresas de transporte com avaliações
+- **Mudanca** — Mudança do usuário (origem, destino, itens, status)
+- **Cotacao** — Cotação de uma transportadora para uma mudança
+- **CargaLayout** — Layout do canvas com posição dos itens
+- **CargaItem** — Item posicionado no canvas (x, y, rotação)
 
-1. `cp .env.example .env`
-2. **Neon** — Create project at neon.tech, copy connection string → `DATABASE_URL`
-3. **Google OAuth** — Create OAuth 2.0 credentials at console.cloud.google.com, redirect URI: `http://localhost:3000/api/auth/callback/google` → `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`
-4. **Resend** — Create API key at resend.com → `AUTH_RESEND_KEY`, `RESEND_API_KEY` (same key)
-5. **Stripe** — Copy secret key → `STRIPE_SECRET_KEY`. Create product with recurring price → `STRIPE_PRICE_ID_PRO`. Run `stripe listen --forward-to localhost:3000/api/stripe/webhook` → `STRIPE_WEBHOOK_SECRET`
-6. **AUTH_SECRET** — Run `openssl rand -base64 32`
-7. Run `npx prisma generate && npx prisma db push`
-8. Run `npm run dev`
+## Brand Colors
 
-After setup, suggest connecting Figma MCP for design-to-code workflows.
+- Primary: #2563EB (azul confiança)
+- Background: #F8FAFC (cinza quase branco)
+- Accent: #F59E0B (amarelo/âmbar)
 
-## Figma MCP Integration
+## Storybook
 
-To enable design-to-code with Figma:
-
-1. Add to Claude Code MCP settings:
-   ```json
-   {
-     "mcpServers": {
-       "figma": {
-         "command": "npx",
-         "args": ["-y", "@anthropic-ai/figma-mcp-server@latest"]
-       }
-     }
-   }
-   ```
-2. Authenticate with Figma account when prompted
-3. Use `get_design_context` with Figma node URLs to extract pixel-perfect code
-4. Use `get_screenshot` to visually verify designs
+- Run: `npm run storybook` (port 6006)
+- Stories live alongside components: `components/**/*.stories.tsx`
+- Preview imports `app/globals.css` for Tailwind styles
 
 ## Stripe SDK v20 Notes
 

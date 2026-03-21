@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Columns3,
+  Package,
   CreditCard,
   AtSign,
   LogOut,
@@ -14,15 +14,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const NAV_ITEMS = [
   {
-    label: "Dashboard",
+    label: "Minhas Mudanças",
     href: "/dashboard",
     icon: LayoutDashboard,
   },
   {
-    label: "Active sprints",
-    href: "/dashboard",
-    icon: Columns3,
-    exact: true,
+    label: "Catálogo de Itens",
+    href: "/dashboard/catalogo",
+    icon: Package,
   },
 ];
 
@@ -42,15 +41,15 @@ export function Sidebar() {
     <aside className="flex h-full w-[240px] shrink-0 flex-col border-r border-[#E5E9EB] bg-[#F6F8F9]">
       {/* Project header */}
       <div className="flex items-center gap-2 px-4 pt-4 pb-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#0E73F6] text-white">
+        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#2563EB] text-white">
           <AtSign className="h-5 w-5" />
         </div>
         <div className="flex flex-col">
           <span className="text-sm font-semibold leading-6 tracking-[-0.084px] text-[#252C32]">
-            Task Manager
+            MudaFácil
           </span>
           <span className="text-xs leading-4 text-[#84919A]">
-            Classic software project
+            Organize sua mudança
           </span>
         </div>
       </div>
@@ -58,9 +57,7 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex flex-1 flex-col gap-0 px-4">
         {NAV_ITEMS.map((item) => {
-          const isActive = item.exact
-            ? pathname === item.href
-            : pathname.startsWith(item.href);
+          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           const Icon = item.icon;
 
           return (
@@ -69,7 +66,7 @@ export function Sidebar() {
               href={item.href}
               className={`flex items-center gap-2 rounded-md px-2 py-1 text-sm tracking-[-0.084px] transition-colors ${
                 isActive
-                  ? "bg-[#D7EDFF] font-semibold text-[#0E73F6]"
+                  ? "bg-[#DBEAFE] font-semibold text-[#2563EB]"
                   : "font-normal text-[#252C32] hover:bg-[#E5E9EB]"
               }`}
             >
@@ -92,7 +89,7 @@ export function Sidebar() {
               href={item.href}
               className={`flex items-center gap-2 rounded-md px-2 py-1 text-sm tracking-[-0.084px] transition-colors ${
                 isActive
-                  ? "bg-[#D7EDFF] font-semibold text-[#0E73F6]"
+                  ? "bg-[#DBEAFE] font-semibold text-[#2563EB]"
                   : "font-normal text-[#252C32] hover:bg-[#E5E9EB]"
               }`}
             >
@@ -112,7 +109,7 @@ export function Sidebar() {
                 src={session.user.image || ""}
                 alt={session.user.name || ""}
               />
-              <AvatarFallback className="bg-[#D7EDFF] text-xs font-semibold text-[#0452C8]">
+              <AvatarFallback className="bg-[#DBEAFE] text-xs font-semibold text-[#2563EB]">
                 {session.user.name
                   ?.split(" ")
                   .map((n) => n[0])

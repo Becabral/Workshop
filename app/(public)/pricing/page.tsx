@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { Navbar } from "@/components/layout/navbar";
 
 export default function PricingPage() {
@@ -25,7 +25,7 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F8FAFC]">
       <Navbar />
       <div className="mx-auto max-w-4xl px-4 py-16">
         <div className="text-center mb-12">
@@ -33,7 +33,7 @@ export default function PricingPage() {
             Planos simples, sem surpresas
           </h1>
           <p className="mt-4 text-lg text-gray-600">
-            Comece grátis e faça upgrade quando precisar.
+            Comece grátis e faça upgrade quando precisar de mais.
           </p>
         </div>
 
@@ -42,16 +42,18 @@ export default function PricingPage() {
           <Card className="relative">
             <CardHeader>
               <CardTitle className="text-xl">Gratuito</CardTitle>
-              <CardDescription>Para começar sem compromisso</CardDescription>
+              <CardDescription>Para testar sem compromisso</CardDescription>
               <div className="mt-4">
                 <span className="text-4xl font-bold">R$ 0</span>
                 <span className="text-gray-500">/mês</span>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Feature text="Até 3 listas de tarefas" />
-              <Feature text="Tarefas ilimitadas por lista" />
-              <Feature text="Marcar como concluída" />
+              <Feature text="1 mudança ativa" />
+              <Feature text="Até 15 itens no canvas" />
+              <Feature text="3 cotações por mudança" />
+              <Feature text="Catálogo de itens básico" />
+              <FeatureDisabled text="Filtros avançados de cotação" />
               <Button
                 variant="outline"
                 className="w-full mt-4"
@@ -63,27 +65,28 @@ export default function PricingPage() {
           </Card>
 
           {/* PRO Plan */}
-          <Card className="relative border-blue-600 border-2">
+          <Card className="relative border-[#2563EB] border-2">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-medium text-white">
+              <span className="rounded-full bg-[#F59E0B] px-3 py-1 text-xs font-medium text-white">
                 Mais popular
               </span>
             </div>
             <CardHeader>
               <CardTitle className="text-xl">Pro</CardTitle>
-              <CardDescription>Para produtividade máxima</CardDescription>
+              <CardDescription>Para mudar sem limites</CardDescription>
               <div className="mt-4">
-                <span className="text-4xl font-bold">R$ 19,90</span>
+                <span className="text-4xl font-bold">R$ 29,90</span>
                 <span className="text-gray-500">/mês</span>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Feature text="Listas ilimitadas" highlight />
-              <Feature text="Tarefas ilimitadas" highlight />
+              <Feature text="Mudanças ilimitadas" highlight />
+              <Feature text="Itens ilimitados no canvas" highlight />
+              <Feature text="Cotações ilimitadas" highlight />
+              <Feature text="Filtros avançados de cotação" highlight />
               <Feature text="14 dias grátis para testar" highlight />
-              <Feature text="Suporte prioritário" highlight />
               <Button
-                className="w-full mt-4 bg-blue-600 hover:bg-blue-700"
+                className="w-full mt-4 bg-[#2563EB] hover:bg-blue-700"
                 onClick={handleCheckout}
               >
                 Começar trial gratuito
@@ -99,10 +102,19 @@ export default function PricingPage() {
 function Feature({ text, highlight }: { text: string; highlight?: boolean }) {
   return (
     <div className="flex items-center gap-2">
-      <Check className={`h-4 w-4 ${highlight ? "text-blue-600" : "text-gray-400"}`} />
+      <Check className={`h-4 w-4 shrink-0 ${highlight ? "text-[#2563EB]" : "text-gray-400"}`} />
       <span className={`text-sm ${highlight ? "text-gray-900" : "text-gray-600"}`}>
         {text}
       </span>
+    </div>
+  );
+}
+
+function FeatureDisabled({ text }: { text: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <X className="h-4 w-4 shrink-0 text-gray-300" />
+      <span className="text-sm text-gray-400 line-through">{text}</span>
     </div>
   );
 }

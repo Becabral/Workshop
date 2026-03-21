@@ -1,22 +1,32 @@
 import type { UserWithPlan, UsageLimitResult } from "@/types";
 
 // ─── Plan Limits ─────────────────────────────────────────
-// Customize per product: set limits for the FREE plan.
-// TRIAL and PRO are unlimited.
+// FREE: 1 mudança ativa, até 15 itens no canvas, 3 cotações por mudança, sem filtros avançados
+// TRIAL (14 dias): tudo ilimitado
+// PRO: tudo ilimitado — R$ 29,90/mês
 
 export const PLAN_LIMITS = {
   FREE: {
-    todoLists: 3,
+    mudancasAtivas: 1,
+    itensNoCanvas: 15,
+    cotacoesPorMudanca: 3,
+    filtrosAvancados: false,
   },
   TRIAL: {
-    todoLists: Infinity,
+    mudancasAtivas: Infinity,
+    itensNoCanvas: Infinity,
+    cotacoesPorMudanca: Infinity,
+    filtrosAvancados: true,
   },
   PRO: {
-    todoLists: Infinity,
+    mudancasAtivas: Infinity,
+    itensNoCanvas: Infinity,
+    cotacoesPorMudanca: Infinity,
+    filtrosAvancados: true,
   },
 } as const;
 
-export type ResourceKey = keyof typeof PLAN_LIMITS.FREE;
+export type ResourceKey = "mudancasAtivas" | "itensNoCanvas" | "cotacoesPorMudanca";
 
 // ─── Trial & Subscription Checks ────────────────────────
 
@@ -53,10 +63,14 @@ export function checkUsageLimit(
   const limit = PLAN_LIMITS[plan][resource];
 
   return {
-    allowed: currentUsage < limit,
+    allowed: currentUsage < (limit as number),
     current: currentUsage,
-    limit: limit === Infinity ? -1 : limit,
+    limit: limit === Infinity ? -1 : (limit as number),
   };
+}
+
+export function hasAdvancedFilters(user: UserWithPlan): boolean {
+  return PLAN_LIMITS[user.plan].filtrosAvancados;
 }
 
 export function getPlanDisplayName(plan: string): string {

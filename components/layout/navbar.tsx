@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { CheckCircle2, LogOut, Settings, User } from "lucide-react";
+import { Truck, LogOut, Settings, User } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,8 +22,8 @@ export function Navbar() {
     <nav className="border-b bg-white">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
         <Link href={session ? "/dashboard" : "/"} className="flex items-center gap-2">
-          <CheckCircle2 className="h-6 w-6 text-blue-600" />
-          <span className="text-lg font-bold">TaskFlow</span>
+          <Truck className="h-6 w-6 text-[#2563EB]" />
+          <span className="text-lg font-bold">MudaFácil</span>
         </Link>
 
         {session?.user ? (
@@ -86,7 +86,7 @@ export function Navbar() {
               <Button variant="ghost">Entrar</Button>
             </Link>
             <Link href="/login">
-              <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button className="bg-[#2563EB] hover:bg-blue-700">
                 Comece grátis
               </Button>
             </Link>

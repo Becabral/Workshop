@@ -1,27 +1,66 @@
 import { z } from "zod";
 
-export const todoStatusEnum = z.enum(["TODO", "IN_PROGRESS", "DONE"]);
+export const categoriaItemEnum = z.enum([
+  "QUARTO",
+  "COZINHA",
+  "SALA",
+  "ESCRITORIO",
+  "BANHEIRO",
+  "AREA_SERVICO",
+  "CAIXAS",
+]);
 
-export const todoListSchema = z.object({
-  name: z
+export const mudancaStatusEnum = z.enum([
+  "RASCUNHO",
+  "COTANDO",
+  "CONFIRMADA",
+  "CONCLUIDA",
+]);
+
+export const mudancaSchema = z.object({
+  enderecoOrigem: z
     .string()
-    .min(1, "O nome da lista é obrigatório")
-    .max(100, "O nome deve ter no máximo 100 caracteres"),
-});
-
-export const todoItemSchema = z.object({
-  title: z
+    .min(5, "Endereço de origem é obrigatório")
+    .max(300, "Endereço muito longo"),
+  enderecoDestino: z
     .string()
-    .min(1, "O título da tarefa é obrigatório")
-    .max(500, "O título deve ter no máximo 500 caracteres"),
-  todoListId: z.string().cuid(),
+    .min(5, "Endereço de destino é obrigatório")
+    .max(300, "Endereço muito longo"),
+  dataDesejada: z.string().datetime().optional(),
+  caminhaoId: z.string().cuid().optional(),
 });
 
-export const updateItemStatusSchema = z.object({
-  status: todoStatusEnum,
-  position: z.number().int().min(0).optional(),
+export const itemSchema = z.object({
+  nome: z
+    .string()
+    .min(1, "Nome do item é obrigatório")
+    .max(100, "Nome muito longo"),
+  categoria: categoriaItemEnum,
+  larguraCm: z.number().int().min(1).max(500),
+  alturaCm: z.number().int().min(1).max(500),
+  profundidadeCm: z.number().int().min(1).max(500),
+  pesoKg: z.number().min(0.1).max(2000),
+  volumeM3: z.number().min(0.001).max(50),
 });
 
-export type TodoListInput = z.infer<typeof todoListSchema>;
-export type TodoItemInput = z.infer<typeof todoItemSchema>;
-export type TodoStatus = z.infer<typeof todoStatusEnum>;
+export const cargaItemSchema = z.object({
+  cargaLayoutId: z.string().cuid(),
+  itemId: z.string().cuid(),
+  x: z.number().min(0),
+  y: z.number().min(0),
+  rotacao: z.number().int().min(0).max(360),
+});
+
+export const cotacaoFilterSchema = z.object({
+  precoMax: z.number().int().optional(),
+  notaMinima: z.number().min(0).max(5).optional(),
+  seguroIncluso: z.boolean().optional(),
+  tipoCaminhao: z.string().optional(),
+  dataDisponivel: z.string().datetime().optional(),
+  ordenarPor: z.enum(["preco", "nota", "data"]).optional(),
+});
+
+export type MudancaInput = z.infer<typeof mudancaSchema>;
+export type ItemInput = z.infer<typeof itemSchema>;
+export type CargaItemInput = z.infer<typeof cargaItemSchema>;
+export type CotacaoFilter = z.infer<typeof cotacaoFilterSchema>;

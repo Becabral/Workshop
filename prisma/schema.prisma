@@ -30,7 +30,7 @@ model User {
 
   accounts  Account[]
   sessions  Session[]
-  todoLists TodoList[]
+  mudancas  Mudanca[]
 }
 
 model Account {
@@ -73,35 +73,131 @@ model VerificationToken {
 
 // ─── Product Entities ──────────────────────────────────
 
-enum TodoStatus {
-  TODO
-  IN_PROGRESS
-  DONE
+enum MudancaStatus {
+  RASCUNHO
+  COTANDO
+  CONFIRMADA
+  CONCLUIDA
 }
 
-model TodoList {
-  id        String     @id @default(cuid())
-  name      String
-  userId    String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+enum CategoriaItem {
+  QUARTO
+  COZINHA
+  SALA
+  ESCRITORIO
+  BANHEIRO
+  AREA_SERVICO
+  CAIXAS
+}
 
-  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items TodoItem[]
+model Item {
+  id              String        @id @default(cuid())
+  nome            String
+  categoria       CategoriaItem
+  iconeUrl        String?
+  larguraCm       Int
+  alturaCm        Int
+  profundidadeCm  Int
+  pesoKg          Float
+  volumeM3        Float
+  customizado     Boolean       @default(false)
+  userId          String?
+  createdAt       DateTime      @default(now())
+
+  cargaItens CargaItem[]
+
+  @@index([categoria])
+}
+
+model Caminhao {
+  id             String   @id @default(cuid())
+  nome           String
+  tipo           String
+  capacidadeM3   Float
+  capacidadeKg   Float
+  comprimentoCm  Int
+  larguraCm      Int
+  alturaCm       Int
+  imagemUrl      String?
+  createdAt      DateTime @default(now())
+
+  mudancas    Mudanca[]
+  cargaLayouts CargaLayout[]
+}
+
+model Transportadora {
+  id              String   @id @default(cuid())
+  nome            String
+  logoUrl         String?
+  notaMedia       Float    @default(0)
+  totalAvaliacoes Int      @default(0)
+  cidade          String
+  tiposCaminhao   String[]
+  createdAt       DateTime @default(now())
+
+  cotacoes Cotacao[]
+
+  @@index([cidade])
+}
+
+model Mudanca {
+  id              String        @id @default(cuid())
+  userId          String
+  enderecoOrigem  String
+  enderecoDestino String
+  dataDesejada    DateTime?
+  caminhaoId      String?
+  status          MudancaStatus @default(RASCUNHO)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  caminhao     Caminhao?     @relation(fields: [caminhaoId], references: [id])
+  cotacoes     Cotacao[]
+  cargaLayout  CargaLayout?
 
   @@index([userId])
 }
 
-model TodoItem {
-  id         String     @id @default(cuid())
-  title      String
-  status     TodoStatus @default(TODO)
-  position   Int        @default(0)
-  todoListId String
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+model Cotacao {
+  id               String   @id @default(cuid())
+  mudancaId        String
+  transportadoraId String
+  precoCentavos    Int
+  dataDisponivel   DateTime
+  seguroIncluso    Boolean  @default(false)
+  validade         DateTime
+  createdAt        DateTime @default(now())
 
-  todoList TodoList @relation(fields: [todoListId], references: [id], onDelete: Cascade)
+  mudanca       Mudanca       @relation(fields: [mudancaId], references: [id], onDelete: Cascade)
+  transportadora Transportadora @relation(fields: [transportadoraId], references: [id])
 
-  @@index([todoListId])
+  @@index([mudancaId])
+}
+
+model CargaLayout {
+  id                  String   @id @default(cuid())
+  mudancaId           String   @unique
+  caminhaoId          String
+  ocupacaoPercentual  Float    @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  mudanca  Mudanca     @relation(fields: [mudancaId], references: [id], onDelete: Cascade)
+  caminhao Caminhao    @relation(fields: [caminhaoId], references: [id])
+  itens    CargaItem[]
+}
+
+model CargaItem {
+  id            String @id @default(cuid())
+  cargaLayoutId String
+  itemId        String
+  x             Float  @default(0)
+  y             Float  @default(0)
+  rotacao       Int    @default(0)
+
+  cargaLayout CargaLayout @relation(fields: [cargaLayoutId], references: [id], onDelete: Cascade)
+  item        Item        @relation(fields: [itemId], references: [id])
+
+  @@index([cargaLayoutId])
 }

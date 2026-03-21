@@ -6,9 +6,9 @@ import { Providers } from "@/components/layout/providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TaskFlow — Organize suas tarefas sem complicação",
+  title: "MudaFácil — Arraste seus móveis, escolha o caminhão e mude sem estresse",
   description:
-    "Crie listas, adicione tarefas, e mantenha o foco no que importa. Simples assim.",
+    "Monte visualmente a carga da sua mudança com drag & drop, compare tamanhos de caminhão em tempo real e receba cotações instantâneas de transportadoras avaliadas.",
 };
 
 export default function RootLayout({
