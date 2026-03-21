@@ -92,65 +92,98 @@ function formatDate(iso: string): string {
 
 // ─── MudancaCard ──────────────────────────────────────────
 
+function getGoogleMapsEmbedUrl(origin: string, destination: string): string {
+  const query = encodeURIComponent(`${origin} to ${destination}`);
+  return `https://www.google.com/maps?q=${query}&output=embed`;
+}
+
+function getGoogleMapsDirectionsUrl(origin: string, destination: string): string {
+  return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+}
+
 function MudancaCard({ mudanca }: { mudanca: Mudanca }) {
   const statusStyle = STATUS_STYLES[mudanca.status];
+  const mapsUrl = getGoogleMapsDirectionsUrl(mudanca.enderecoOrigem, mudanca.enderecoDestino);
+  const embedUrl = getGoogleMapsEmbedUrl(mudanca.enderecoOrigem, mudanca.enderecoDestino);
 
   return (
-    <Link href={`/dashboard/mudanca/${mudanca.id}`}>
-    <Card className="group cursor-pointer border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
-      <CardHeader className="flex flex-row items-start justify-between gap-4 pb-3">
-        <Badge
-          variant="outline"
-          className={`text-xs font-medium ${statusStyle.className}`}
-        >
-          {statusStyle.label}
-        </Badge>
-        <span className="inline-flex items-center h-7 px-2 text-xs text-gray-400 opacity-0 transition-opacity group-hover:opacity-100">
-          Ver detalhes
-          <ArrowRight className="ml-1 h-3 w-3" />
-        </span>
-      </CardHeader>
-
-      <CardContent className="space-y-3">
-        {/* Origin → Destination */}
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-start gap-2 text-sm text-gray-700">
-            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#F37021]" />
-            <span className="leading-snug">{mudanca.enderecoOrigem}</span>
-          </div>
-          <div className="ml-6 flex items-center gap-1.5 text-xs text-gray-400">
-            <ArrowRight className="h-3 w-3" />
-            <span className="leading-snug text-gray-600">
-              {mudanca.enderecoDestino}
-            </span>
-          </div>
+    <Card className="group cursor-pointer border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md overflow-hidden">
+      {/* Map preview */}
+      <a
+        href={mapsUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="relative block h-[160px] w-full overflow-hidden bg-gray-100"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <iframe
+          src={embedUrl}
+          className="pointer-events-none h-full w-full border-0"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          tabIndex={-1}
+          title={`Rota: ${mudanca.enderecoOrigem} → ${mudanca.enderecoDestino}`}
+        />
+        <div className="absolute inset-0 bg-transparent hover:bg-black/5 transition-colors" />
+        <div className="absolute bottom-2 right-2 rounded-md bg-white/90 backdrop-blur-sm px-2 py-1 text-[10px] font-medium text-gray-600 shadow-sm">
+          Ver rota completa ↗
         </div>
+      </a>
 
-        {/* Meta row */}
-        <div className="flex flex-wrap items-center gap-4 border-t border-gray-100 pt-3">
-          <div className="flex items-center gap-1.5 text-xs text-gray-500">
-            <Calendar className="h-3.5 w-3.5 text-[#1B1660]" />
-            <span>{formatDate(mudanca.dataDesejada)}</span>
-          </div>
+      <Link href={`/dashboard/mudanca/${mudanca.id}`}>
+        <CardHeader className="flex flex-row items-start justify-between gap-4 pb-3 pt-4">
+          <Badge
+            variant="outline"
+            className={`text-xs font-medium ${statusStyle.className}`}
+          >
+            {statusStyle.label}
+          </Badge>
+          <span className="inline-flex items-center h-7 px-2 text-xs text-gray-400 opacity-0 transition-opacity group-hover:opacity-100">
+            Ver detalhes
+            <ArrowRight className="ml-1 h-3 w-3" />
+          </span>
+        </CardHeader>
 
-          <div className="flex items-center gap-1.5 text-xs text-gray-500">
-            <Package className="h-3.5 w-3.5 text-[#F37021]" />
-            <span>
-              {mudanca.numeroItens}{" "}
-              {mudanca.numeroItens === 1 ? "item" : "itens"}
-            </span>
-          </div>
-
-          {mudanca.caminhaoSelecionado && (
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <Truck className="h-3.5 w-3.5 text-gray-400" />
-              <span>{mudanca.caminhaoSelecionado}</span>
+        <CardContent className="space-y-3">
+          {/* Origin → Destination */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-start gap-2 text-sm text-gray-700">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#F37021]" />
+              <span className="leading-snug">{mudanca.enderecoOrigem}</span>
             </div>
-          )}
-        </div>
-      </CardContent>
+            <div className="ml-6 flex items-center gap-1.5 text-xs text-gray-400">
+              <ArrowRight className="h-3 w-3" />
+              <span className="leading-snug text-gray-600">
+                {mudanca.enderecoDestino}
+              </span>
+            </div>
+          </div>
+
+          {/* Meta row */}
+          <div className="flex flex-wrap items-center gap-4 border-t border-gray-100 pt-3">
+            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+              <Calendar className="h-3.5 w-3.5 text-[#1B1660]" />
+              <span>{formatDate(mudanca.dataDesejada)}</span>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+              <Package className="h-3.5 w-3.5 text-[#F37021]" />
+              <span>
+                {mudanca.numeroItens}{" "}
+                {mudanca.numeroItens === 1 ? "item" : "itens"}
+              </span>
+            </div>
+
+            {mudanca.caminhaoSelecionado && (
+              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                <Truck className="h-3.5 w-3.5 text-gray-400" />
+                <span>{mudanca.caminhaoSelecionado}</span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Link>
     </Card>
-    </Link>
   );
 }
 
