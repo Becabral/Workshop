@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -11,86 +12,49 @@ import {
   Plus,
   Loader2,
   ArrowRight,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PaywallGate } from "@/components/paywall/paywall-gate";
 import { PLAN_LIMITS } from "@/lib/subscription";
+import {
+  useMudancas,
+  useCreateMudanca,
+  type MudancaListItem,
+} from "@/hooks/use-mudancas";
 
 // ─── Types ────────────────────────────────────────────────
 
-type MudancaStatus = "Rascunho" | "Cotando" | "Confirmada" | "Concluída";
-
-interface Mudanca {
-  id: string;
-  status: MudancaStatus;
-  enderecoOrigem: string;
-  enderecoDestino: string;
-  dataDesejada: string;
-  numeroItens: number;
-  caminhaoSelecionado: string | null;
-}
-
-// ─── Mock Data ────────────────────────────────────────────
-
-const MOCK_MUDANCAS: Mudanca[] = [
-  {
-    id: "mud_001",
-    status: "Confirmada",
-    enderecoOrigem: "Rua das Flores, 123 – São Paulo, SP",
-    enderecoDestino: "Av. Paulista, 1500 – São Paulo, SP",
-    dataDesejada: "2026-04-05",
-    numeroItens: 34,
-    caminhaoSelecionado: "Caminhão Baú 3/4",
-  },
-  {
-    id: "mud_002",
-    status: "Cotando",
-    enderecoOrigem: "Rua XV de Novembro, 80 – Curitiba, PR",
-    enderecoDestino: "Rua Marechal Deodoro, 200 – Curitiba, PR",
-    dataDesejada: "2026-04-18",
-    numeroItens: 21,
-    caminhaoSelecionado: null,
-  },
-  {
-    id: "mud_003",
-    status: "Rascunho",
-    enderecoOrigem: "Rua Consolação, 400 – São Paulo, SP",
-    enderecoDestino: "Rua Oscar Freire, 900 – São Paulo, SP",
-    dataDesejada: "2026-05-10",
-    numeroItens: 8,
-    caminhaoSelecionado: null,
-  },
-];
-
-// ─── Helpers ──────────────────────────────────────────────
+type MudancaStatus = "RASCUNHO" | "COTANDO" | "CONFIRMADA" | "CONCLUIDA";
 
 const STATUS_STYLES: Record<MudancaStatus, { label: string; className: string }> = {
-  Rascunho: {
+  RASCUNHO: {
     label: "Rascunho",
     className: "bg-gray-100 text-gray-600 border-gray-200",
   },
-  Cotando: {
+  COTANDO: {
     label: "Cotando",
     className: "bg-amber-100 text-amber-700 border-amber-200",
   },
-  Confirmada: {
+  CONFIRMADA: {
     label: "Confirmada",
     className: "bg-blue-100 text-blue-700 border-blue-200",
   },
-  Concluída: {
+  CONCLUIDA: {
     label: "Concluída",
     className: "bg-green-100 text-green-700 border-green-200",
   },
 };
 
-function formatDate(iso: string): string {
-  const [year, month, day] = iso.split("-");
-  return `${day}/${month}/${year}`;
-}
+// ─── Helpers ──────────────────────────────────────────────
 
-// ─── MudancaCard ──────────────────────────────────────────
+function formatDate(iso: string | null): string {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  return date.toLocaleDateString("pt-BR");
+}
 
 function getGoogleMapsEmbedUrl(origin: string, destination: string): string {
   const query = encodeURIComponent(`${origin} to ${destination}`);
@@ -101,10 +65,141 @@ function getGoogleMapsDirectionsUrl(origin: string, destination: string): string
   return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
 }
 
-function MudancaCard({ mudanca }: { mudanca: Mudanca }) {
-  const statusStyle = STATUS_STYLES[mudanca.status];
+// ─── Nova Mudanca Modal ──────────────────────────────────
+
+function NovaMudancaModal({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  const [origem, setOrigem] = useState("");
+  const [destino, setDestino] = useState("");
+  const [data, setData] = useState("");
+  const createMudanca = useCreateMudanca();
+
+  if (!open) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!origem.trim() || !destino.trim()) return;
+
+    try {
+      await createMudanca.mutateAsync({
+        enderecoOrigem: origem.trim(),
+        enderecoDestino: destino.trim(),
+        dataDesejada: data ? new Date(data).toISOString() : undefined,
+      });
+      setOrigem("");
+      setDestino("");
+      setData("");
+      onClose();
+    } catch {
+      // error is handled by mutation state
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="mx-4 w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-gray-900">Nova Mudanca</h2>
+          <button
+            onClick={onClose}
+            className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Endereco de origem
+            </label>
+            <input
+              type="text"
+              value={origem}
+              onChange={(e) => setOrigem(e.target.value)}
+              placeholder="Rua das Flores, 123 - Sao Paulo, SP"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#F37021] focus:outline-none focus:ring-2 focus:ring-[#F37021]/20"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Endereco de destino
+            </label>
+            <input
+              type="text"
+              value={destino}
+              onChange={(e) => setDestino(e.target.value)}
+              placeholder="Av. Paulista, 1500 - Sao Paulo, SP"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#F37021] focus:outline-none focus:ring-2 focus:ring-[#F37021]/20"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Data desejada
+            </label>
+            <input
+              type="date"
+              value={data}
+              onChange={(e) => setData(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#F37021] focus:outline-none focus:ring-2 focus:ring-[#F37021]/20"
+            />
+          </div>
+
+          {createMudanca.isError && (
+            <p className="text-sm text-red-600">
+              {createMudanca.error?.message || "Erro ao criar mudanca"}
+            </p>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={onClose}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              className="flex-1 bg-[#F37021] text-white hover:bg-[#D85E1A]"
+              disabled={createMudanca.isPending || !origem.trim() || !destino.trim()}
+            >
+              {createMudanca.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Criando...
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  Criar Mudanca
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ─── MudancaCard ──────────────────────────────────────────
+
+function MudancaCard({ mudanca }: { mudanca: MudancaListItem }) {
+  const statusStyle = STATUS_STYLES[mudanca.status] || STATUS_STYLES.RASCUNHO;
   const mapsUrl = getGoogleMapsDirectionsUrl(mudanca.enderecoOrigem, mudanca.enderecoDestino);
   const embedUrl = getGoogleMapsEmbedUrl(mudanca.enderecoOrigem, mudanca.enderecoDestino);
+  const itemCount = mudanca._count?.cotacoes ?? 0;
 
   return (
     <Card className="group cursor-pointer border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md overflow-hidden !py-0 !gap-0">
@@ -166,18 +261,19 @@ function MudancaCard({ mudanca }: { mudanca: Mudanca }) {
               <span>{formatDate(mudanca.dataDesejada)}</span>
             </div>
 
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <Package className="h-3.5 w-3.5 text-[#F37021]" />
-              <span>
-                {mudanca.numeroItens}{" "}
-                {mudanca.numeroItens === 1 ? "item" : "itens"}
-              </span>
-            </div>
+            {itemCount > 0 && (
+              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                <Package className="h-3.5 w-3.5 text-[#F37021]" />
+                <span>
+                  {itemCount} {itemCount === 1 ? "cotacao" : "cotacoes"}
+                </span>
+              </div>
+            )}
 
-            {mudanca.caminhaoSelecionado && (
+            {mudanca.caminhao && (
               <div className="flex items-center gap-1.5 text-xs text-gray-500">
                 <Truck className="h-3.5 w-3.5 text-gray-400" />
-                <span>{mudanca.caminhaoSelecionado}</span>
+                <span>{mudanca.caminhao.nome}</span>
               </div>
             )}
           </div>
@@ -190,9 +286,11 @@ function MudancaCard({ mudanca }: { mudanca: Mudanca }) {
 // ─── Page ─────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
+  const { data: session, status: authStatus } = useSession();
+  const { data: mudancas, isLoading, isError, error } = useMudancas();
+  const [modalOpen, setModalOpen] = useState(false);
 
-  if (status === "loading") {
+  if (authStatus === "loading" || isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-[#F37021]" />
@@ -205,7 +303,7 @@ export default function DashboardPage() {
   }
 
   const userPlan = session.user.plan || "FREE";
-  const mudancaCount = MOCK_MUDANCAS.length;
+  const mudancaCount = mudancas?.length ?? 0;
   const freeLimit = PLAN_LIMITS.FREE.mudancasAtivas;
   const isAtLimit = userPlan === "FREE" && mudancaCount >= freeLimit;
 
@@ -215,52 +313,71 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-            Minhas Mudanças
+            Minhas Mudancas
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            Gerencie e acompanhe todas as suas mudanças em um só lugar.
+            Gerencie e acompanhe todas as suas mudancas em um so lugar.
           </p>
         </div>
 
         <PaywallGate
-          featureName="mudança ativa"
+          featureName="mudanca ativa"
           currentUsage={mudancaCount}
           limit={freeLimit}
           isBlocked={isAtLimit}
         >
-          <Link href="/dashboard/nova-mudanca">
-            <Button className="gap-2 bg-[#F37021] text-white hover:bg-[#D85E1A]">
-              <Plus className="h-4 w-4" />
-              Nova Mudança
-            </Button>
-          </Link>
+          <Button
+            className="gap-2 bg-[#F37021] text-white hover:bg-[#D85E1A]"
+            onClick={() => setModalOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Nova Mudanca
+          </Button>
         </PaywallGate>
       </div>
 
-      {/* Mudanças list */}
-      {MOCK_MUDANCAS.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-20 text-center">
-          <Truck className="mb-4 h-12 w-12 text-gray-300" />
-          <h3 className="text-lg font-medium text-gray-800">
-            Nenhuma mudança ainda
-          </h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Crie sua primeira mudança para começar a receber cotações.
+      {/* Error state */}
+      {isError && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+          <p className="text-sm text-red-600">
+            {error?.message || "Erro ao carregar mudancas"}
           </p>
-          <Link href="/dashboard/nova-mudanca">
-            <Button className="mt-6 gap-2 bg-[#F37021] text-white hover:bg-[#D85E1A]">
-              <Plus className="h-4 w-4" />
-              Nova Mudança
-            </Button>
-          </Link>
         </div>
-      ) : (
+      )}
+
+      {/* Empty state */}
+      {!isError && mudancaCount === 0 && (
+        <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-20 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#F37021]/10 mb-4">
+            <Truck className="h-8 w-8 text-[#F37021]" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Nenhuma mudanca ainda
+          </h3>
+          <p className="mt-2 max-w-sm text-sm text-gray-500">
+            Crie sua primeira mudanca para comecar a planejar sua carga, comparar caminhoes e receber cotacoes de transportadoras.
+          </p>
+          <Button
+            className="mt-6 gap-2 bg-[#F37021] text-white hover:bg-[#D85E1A]"
+            onClick={() => setModalOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Criar minha primeira mudanca
+          </Button>
+        </div>
+      )}
+
+      {/* Mudancas grid */}
+      {!isError && mudancaCount > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {MOCK_MUDANCAS.map((mudanca) => (
+          {mudancas!.map((mudanca) => (
             <MudancaCard key={mudanca.id} mudanca={mudanca} />
           ))}
         </div>
       )}
+
+      {/* Modal */}
+      <NovaMudancaModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }

@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MudaFácil — Arquitetura do Sistema</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange:   #F37021;
+      --orange-lt:#FEF0E6;
+      --navy:     #1B1660;
+      --navy-lt:  #E8E7F5;
+      --bg:       #F8FAFC;
+      --white:    #FFFFFF;
+      --green:    #16A34A;
+      --green-lt: #DCFCE7;
+      --gray:     #64748B;
+      --gray-lt:  #F1F5F9;
+      --border:   #E2E8F0;
+      --shadow:   0 2px 8px rgba(0,0,0,0.08);
+      --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+      --radius:   10px;
+      --font:     'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: #1E293B;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ── Typography ───────────────────────────────────────── */
+    h1 { font-size: 1.75rem; font-weight: 700; }
+    h2 { font-size: 1.1rem;  font-weight: 700; letter-spacing: .02em; }
+    h3 { font-size: .85rem;  font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+    p, li { font-size: .82rem; color: #475569; }
+
+    /* ── Header ───────────────────────────────────────────── */
+    header {
+      background: var(--navy);
+      color: var(--white);
+      padding: 28px 40px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    header::after {
+      content: '';
+      position: absolute;
+      right: -60px; top: -60px;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: rgba(243,112,33,.18);
+      pointer-events: none;
+    }
+    header .brand { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+    header .logo {
+      width: 40px; height: 40px;
+      background: var(--orange);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    header h1 { color: var(--white); }
+    header p { color: rgba(255,255,255,.65); font-size: .9rem; margin-top: 4px; }
+
+    /* ── Nav tabs ─────────────────────────────────────────── */
+    .tab-nav {
+      display: flex; gap: 4px;
+      padding: 20px 40px 0;
+      border-bottom: 2px solid var(--border);
+      background: var(--white);
+      overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 10px 20px;
+      border: none; background: none;
+      font-family: var(--font);
+      font-size: .85rem; font-weight: 600;
+      color: var(--gray);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      white-space: nowrap;
+      transition: color .2s, border-color .2s;
+    }
+    .tab-btn:hover { color: var(--navy); }
+    .tab-btn.active { color: var(--orange); border-color: var(--orange); }
+
+    /* ── Main content ─────────────────────────────────────── */
+    .tab-content { display: none; padding: 36px 40px; }
+    .tab-content.active { display: block; }
+
+    /* ── Legend ───────────────────────────────────────────── */
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 12px;
+      margin-bottom: 28px;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: .78rem; font-weight: 600; color: var(--gray);
+    }
+    .legend-dot {
+      width: 12px; height: 12px; border-radius: 3px;
+    }
+
+    /* ── Layer boxes ──────────────────────────────────────── */
+    .layer {
+      border-radius: 14px;
+      padding: 20px 20px 16px;
+      margin-bottom: 20px;
+      border: 1.5px solid var(--border);
+      position: relative;
+    }
+    .layer-label {
+      position: absolute; top: -11px; left: 18px;
+      font-size: .7rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 2px 10px; border-radius: 20px;
+    }
+    .layer-frontend  { background: var(--orange-lt); border-color: #F9C097; }
+    .layer-frontend  .layer-label { background: var(--orange); color: #fff; }
+    .layer-api       { background: var(--navy-lt);   border-color: #B0ADDF; }
+    .layer-api       .layer-label { background: var(--navy);   color: #fff; }
+    .layer-backend   { background: #F0FDF4; border-color: #86EFAC; }
+    .layer-backend   .layer-label { background: var(--green);  color: #fff; }
+    .layer-database  { background: #FFF7ED; border-color: #FDC88E; }
+    .layer-database  .layer-label { background: #D97706;        color: #fff; }
+    .layer-infra     { background: var(--gray-lt);  border-color: #CBD5E1; }
+    .layer-infra     .layer-label { background: var(--gray);    color: #fff; }
+
+    /* ── Card grid ────────────────────────────────────────── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      cursor: default;
+      transition: transform .15s, box-shadow .15s, border-color .15s;
+      position: relative;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+      border-color: currentColor;
+      z-index: 10;
+    }
+    .card-title {
+      font-size: .82rem; font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .card-sub {
+      font-size: .72rem; color: var(--gray);
+    }
+    .card-badge {
+      display: inline-block;
+      font-size: .65rem; font-weight: 700;
+      padding: 1px 7px; border-radius: 20px;
+      margin-top: 6px;
+    }
+    /* colour variants */
+    .c-orange { color: var(--orange); border-color: var(--orange); }
+    .c-navy   { color: var(--navy);   border-color: var(--navy); }
+    .c-green  { color: var(--green);  border-color: var(--green); }
+    .c-amber  { color: #D97706;       border-color: #D97706; }
+    .c-gray   { color: var(--gray);   border-color: var(--gray); }
+
+    .badge-orange { background: var(--orange-lt); color: var(--orange); }
+    .badge-navy   { background: var(--navy-lt);   color: var(--navy); }
+    .badge-green  { background: var(--green-lt);  color: var(--green); }
+    .badge-amber  { background: #FEF3C7; color: #D97706; }
+    .badge-gray   { background: var(--gray-lt);   color: var(--gray); }
+
+    /* ── Tooltip ──────────────────────────────────────────── */
+    .card [data-tip] { position: relative; }
+    .tooltip {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px); left: 50%;
+      transform: translateX(-50%);
+      background: #1E293B;
+      color: #fff;
+      font-size: .72rem;
+      padding: 6px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      z-index: 100;
+      pointer-events: none;
+    }
+    .card:hover .tooltip { display: block; }
+
+    /* ── Flow diagram ─────────────────────────────────────── */
+    .flow-wrap {
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      min-width: 900px;
+    }
+    .flow-node {
+      flex: 1;
+      background: var(--white);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 10px;
+      text-align: center;
+      position: relative;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .flow-node:hover { transform: scale(1.04); box-shadow: var(--shadow-lg); }
+    .flow-node .fn-icon { font-size: 1.6rem; display: block; margin-bottom: 4px; }
+    .flow-node .fn-title { font-size: .8rem; font-weight: 700; }
+    .flow-node .fn-sub   { font-size: .68rem; color: var(--gray); }
+
+    .flow-arrow {
+      flex: 0 0 auto;
+      display: flex; align-items: center; justify-content: center;
+      width: 48px;
+    }
+    .flow-arrow svg { width: 40px; height: 20px; }
+
+    /* ── ERD ──────────────────────────────────────────────── */
+    .erd-wrap {
+      overflow-x: auto;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      background: var(--white);
+      padding: 24px;
+    }
+    .erd-svg { width: 100%; min-width: 860px; }
+
+    /* Entity table styling inside SVG handled inline */
+
+    /* ── Plan table ───────────────────────────────────────── */
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 8px;
+    }
+    .plan-card {
+      background: var(--white);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .plan-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+    .plan-card.highlight { border-color: var(--orange); }
+    .plan-name { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; }
+    .plan-price { font-size: 1.6rem; font-weight: 700; color: var(--navy); margin-bottom: 12px; }
+    .plan-feature { font-size: .8rem; color: var(--gray); margin: 4px 0; }
+    .plan-feature strong { color: #1E293B; }
+
+    /* ── Middleware / auth flow ───────────────────────────── */
+    .auth-flow {
+      display: flex; flex-direction: column; gap: 12px;
+      max-width: 680px; margin: 0 auto;
+    }
+    .auth-step {
+      display: flex; align-items: flex-start; gap: 14px;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .auth-step-num {
+      flex: 0 0 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .78rem; font-weight: 800; color: #fff;
+    }
+    .auth-step h3 { font-size: .82rem; font-weight: 700; text-transform: none; letter-spacing: 0; color: #1E293B; }
+    .auth-step p  { font-size: .76rem; color: var(--gray); margin-top: 2px; }
+
+    /* ── File map ─────────────────────────────────────────── */
+    .file-tree {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: .78rem;
+      background: #0F172A;
+      color: #E2E8F0;
+      border-radius: 12px;
+      padding: 20px 24px;
+      line-height: 1.9;
+      overflow-x: auto;
+    }
+    .ft-dir   { color: #93C5FD; }
+    .ft-file  { color: #E2E8F0; }
+    .ft-note  { color: #64748B; }
+    .ft-orange{ color: #FB923C; }
+    .ft-green { color: #4ADE80; }
+
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 768px) {
+      header { padding: 20px; }
+      .tab-nav { padding: 16px 16px 0; }
+      .tab-content { padding: 24px 16px; }
+      .plan-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 1.4rem; }
+    }
+
+    /* ── Scrollbar ────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+
+    /* ── Section heading ──────────────────────────────────── */
+    .section-heading {
+      font-size: 1rem; font-weight: 700;
+      margin: 28px 0 12px;
+      color: var(--navy);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-heading::after {
+      content: '';
+      flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ── Connector line (simple CSS arrow between layers) ─── */
+    .connector {
+      display: flex; justify-content: center;
+      margin: -4px 0;
+      color: var(--gray);
+      font-size: 1.4rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════ -->
+<header>
+  <div class="brand">
+    <div class="logo">🚚</div>
+    <div>
+      <h1>MudaFácil</h1>
+      <p>Arquitetura do Sistema &mdash; Visão Geral Interativa</p>
+    </div>
+  </div>
+</header>
+
+<!-- ══ TAB NAVIGATION ═══════════════════════════════════════ -->
+<nav class="tab-nav" role="tablist">
+  <button class="tab-btn active" onclick="showTab('overview',this)"  role="tab">Visão Geral</button>
+  <button class="tab-btn"        onclick="showTab('frontend',this)"  role="tab">Frontend</button>
+  <button class="tab-btn"        onclick="showTab('api',this)"       role="tab">API &amp; Backend</button>
+  <button class="tab-btn"        onclick="showTab('database',this)"  role="tab">Banco de Dados</button>
+  <button class="tab-btn"        onclick="showTab('auth',this)"      role="tab">Auth &amp; Segurança</button>
+  <button class="tab-btn"        onclick="showTab('plans',this)"     role="tab">Planos</button>
+  <button class="tab-btn"        onclick="showTab('files',this)"     role="tab">Estrutura de Arquivos</button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB: VISÃO GERAL
+══════════════════════════════════════════════════════════════ -->
+<section id="tab-overview" class="tab-content active">
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> Frontend (Next.js)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--navy)"></div> API Layer</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Backend Services</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#D97706"></div> Database (PostgreSQL)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--gray)"></div> Infraestrutura</div>
+  </div>
+
+  <!-- Data flow diagram -->
+  <p class="section-heading">Fluxo de Dados Principal</p>
+  <div class="flow-wrap">
+    <div class="flow-diagram">
+
+      <div class="flow-node" style="border-color:var(--gray)">
+        <span class="fn-icon">🌐</span>
+        <div class="fn-title">Usuário</div>
+        <div class="fn-sub">Navegador</div>
+      </div>
+
+      <div class="flow-arrow">
+        <svg viewBox="0 0 40 20"><defs><marker id="a" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6Z" fill="#94A3B8"/></marker></defs><line x1="2" y1="10" x2="36" y2="10" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#a)"/></svg>
+      </div>
+
+      <div class="flow-node" style="border-color:var(--gray)">
+        <span class="fn-icon">⚡</span>
+        <div class="fn-title">Vercel Edge</div>
+        <div class="fn-sub">CDN + Middleware</div>
+      </div>
+
+      <div class="flow-arrow">
+        <svg viewBox="0 0 40 20"><line x1="2" y1="10" x2="36" y2="10" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#a)"/></svg>
+      </div>
+
+      <div class="flow-node" style="border-color:var(--orange)">
+        <span class="fn-icon">⚛️</span>
+        <div class="fn-title">Next.js App</div>
+        <div class="fn-sub">App Router + RSC</div>
+      </div>
+
+      <div class="flow-arrow">
+        <svg viewBox="0 0 40 20"><line x1="2" y1="10" x2="36" y2="10" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#a)"/></svg>
+      </div>
+
+      <div class="flow-node" style="border-color:var(--navy)">
+        <span class="fn-icon">🔌</span>
+        <div class="fn-title">Route Handlers</div>
+        <div class="fn-sub">/api/* endpoints</div>
+      </div>
+
+      <div class="flow-arrow">
+        <svg viewBox="0 0 40 20"><line x1="2" y1="10" x2="36" y2="10" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#a)"/></svg>
+      </div>
+
+      <div class="flow-node" style="border-color:var(--green)">
+        <span class="fn-icon">🗄️</span>
+        <div class="fn-title">Prisma ORM</div>
+        <div class="fn-sub">PostgreSQL / Neon</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Full stack layers -->
+  <p class="section-heading" style="margin-top:32px">Camadas do Sistema</p>
+
+  <!-- INFRA -->
+  <div class="layer layer-infra">
+    <span class="layer-label">Infraestrutura</span>
+    <div class="card-grid" style="margin-top:16px">
+      <div class="card c-gray">
+        <div class="card-title">Vercel</div>
+        <div class="card-sub">Edge + Serverless Functions</div>
+        <span class="card-badge badge-gray">Hosting</span>
+      </div>
+      <div class="card c-gray">
+        <div class="card-title">Neon PostgreSQL</div>
+        <div class="card-sub">sa-east-1 (São Paulo)</div>
+        <span class="card-badge badge-gray">Database</span>
+      </div>
+      <div class="card c-gray">
+        <div class="card-title">Google Cloud</div>
+        <div class="card-sub">OAuth 2.0 Console</div>
+        <span class="card-badge badge-gray">Identity</span>
+      </div>
+      <div class="card c-gray">
+        <div class="card-title">Stripe</div>
+        <div class="card-sub">Subscriptions + Webhooks</div>
+        <span class="card-badge badge-gray">Payments</span>
+      </div>
+      <div class="card c-gray">
+        <div class="card-title">Resend</div>
+        <div class="card-sub">Transactional Email</div>
+        <span class="card-badge badge-gray">Email</span>
+      </div>
+      <div class="card c-gray">
+        <div class="card-title">Storybook</div>
+        <div class="card-sub">Component Explorer :6006</div>
+        <span class="card-badge badge-gray">Dev</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector">↑</div>
+
+  <!-- DATABASE -->
+  <div class="layer layer-database">
+    <span class="layer-label">Banco de Dados</span>
+    <div class="card-grid" style="margin-top:16px">
+      <div class="card c-amber">
+        <div class="card-title">User</div>
+        <div class="card-sub">plan, stripeCustomerId, trialEndsAt</div>
+        <span class="card-badge badge-amber">Auth entity</span>
+      </div>
+      <div class="card c-amber">
+        <div class="card-title">Mudanca</div>
+        <div class="card-sub">userId → caminhao → cotacoes → cargaLayout</div>
+        <span class="card-badge badge-amber">Core entity</span>
+      </div>
+      <div class="card c-amber">
+        <div class="card-title">CargaLayout + CargaItem</div>
+        <div class="card-sub">Canvas interativo (x, y, rotação)</div>
+        <span class="card-badge badge-amber">Canvas</span>
+      </div>
+      <div class="card c-amber">
+        <div class="card-title">Item / Caminhao / Transportadora</div>
+        <div class="card-sub">Catálogo global compartilhado</div>
+        <span class="card-badge badge-amber">Catálogo</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector">↑</div>
+
+  <!-- BACKEND -->
+  <div class="layer layer-backend">
+    <span class="layer-label">Backend Services</span>
+    <div class="card-grid" style="margin-top:16px">
+      <div class="card c-green">
+        <div class="card-title">Auth.js v5</div>
+        <div class="card-sub">JWT + Prisma Adapter</div>
+        <span class="card-badge badge-green">Auth</span>
+      </div>
+      <div class="card c-green">
+        <div class="card-title">Prisma 6</div>
+        <div class="card-sub">ORM + migrations</div>
+        <span class="card-badge badge-green">ORM</span>
+      </div>
+      <div class="card c-green">
+        <div class="card-title">Stripe SDK v20</div>
+        <div class="card-sub">API v2026-02-25.clover</div>
+        <span class="card-badge badge-green">Billing</span>
+      </div>
+      <div class="card c-green">
+        <div class="card-title">Zod</div>
+        <div class="card-sub">Input validation schemas</div>
+        <span class="card-badge badge-green">Validation</span>
+      </div>
+      <div class="card c-green">
+        <div class="card-title">lib/subscription.ts</div>
+        <div class="card-sub">Plan limits enforcement</div>
+        <span class="card-badge badge-green">Plans</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector">↑</div>
+
+  <!-- API -->
+  <div class="layer layer-api">
+    <span class="layer-label">API Layer</span>
+    <div class="card-grid" style="margin-top:16px">
+      <div class="card c-navy">
+        <div class="card-title">/api/auth/*</div>
+        <div class="card-sub">NextAuth — Google OAuth + Magic Link</div>
+        <span class="card-badge badge-navy">Auth</span>
+      </div>
+      <div class="card c-navy">
+        <div class="card-title">/api/mudancas</div>
+        <div class="card-sub">CRUD mudanças do usuário</div>
+        <span class="card-badge badge-navy">REST</span>
+      </div>
+      <div class="card c-navy">
+        <div class="card-title">/api/stripe/checkout</div>
+        <div class="card-sub">Cria sessão de pagamento</div>
+        <span class="card-badge badge-navy">Billing</span>
+      </div>
+      <div class="card c-navy">
+        <div class="card-title">/api/stripe/portal</div>
+        <div class="card-sub">Customer portal redirect</div>
+        <span class="card-badge badge-navy">Billing</span>
+      </div>
+      <div class="card c-navy">
+        <div class="card-title">/api/stripe/webhook</div>
+        <div class="card-sub">Stripe event handler</div>
+        <span class="card-badge badge-navy">Webhook</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector">↑</div>
+
+  <!-- FRONTEND -->
+  <div class="layer layer-frontend">
+    <span class="layer-label">Frontend — Next.js App Router</span>
+    <div class="card-grid" style="margin-top:16px">
+      <div class="card c-orange">
+        <div class="card-title">app/page.tsx</div>
+        <div class="card-sub">Landing page pública</div>
+        <span class="card-badge badge-orange">(public)</span>
+      </div>
+      <div class="card c-orange">
+        <div class="card-title">(public)/login</div>
+        <div class="card-sub">Google OAuth + Magic Link</div>
+        <span class="card-badge badge-orange">(public)</span>
+      </div>
+      <div class="card c-orange">
+        <div class="card-title">(auth)/dashboard</div>
+        <div class="card-sub">Lista de mudanças</div>
+        <span class="card-badge badge-orange">(auth)</span>
+      </div>
+      <div class="card c-orange">
+        <div class="card-title">(auth)/dashboard/catalogo</div>
+        <div class="card-sub">Catálogo de itens</div>
+        <span class="card-badge badge-orange">(auth)</span>
+      </div>
+      <div class="card c-orange">
+        <div class="card-title">(auth)/mudanca/[id]</div>
+        <div class="card-sub">Detalhes + canvas de carga</div>
+        <span class="card-badge badge-orange">(auth)</span>
+      </div>
+      <div class="card c-orange">
+        <div class="card-title">PaywallGate</div>
+        <div class="card-sub">Feature gating por plano</div>
+        <span class="card-badge badge-orange">Component</span>
+      </div>
+      <div class="card c-orange">
+        <div class="card-title">TanStack Query</div>
+        <div class="card-sub">hooks/use-mudancas.ts</div>
+        <span class="card-badge badge-orange">State</span>
+      </div>
+      <div class="card c-orange">
+        <div class="card-title">shadcn/ui</div>
+        <div class="card-sub">Button, Card, Badge, Dialog…</div>
+        <span class="card-badge badge-orange">UI</span>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB: FRONTEND
+══════════════════════════════════════════════════════════════ -->
+<section id="tab-frontend" class="tab-content">
+
+  <p class="section-heading">Páginas — Route Groups</p>
+
+  <div class="layer layer-infra" style="margin-bottom:12px">
+    <span class="layer-label">(public) — sem autenticação</span>
+    <div class="card-grid" style="margin-top:16px">
+      <div class="card c-gray">
+        <div class="card-title">app/page.tsx</div>
+        <div class="card-sub">Hero, ShuffleGrid, GridScan, CTA, Pricing preview</div>
+      </div>
+      <div class="card c-gray">
+        <div class="card-title">(public)/login/page.tsx</div>
+        <div class="card-sub">Google OAuth button + Email Magic Link form</div>
+      </div>
+      <div class="card c-gray">
+        <div class="card-title">(public)/pricing/page.tsx</div>
+        <div class="card-sub">Tabela de planos + botão upgrade</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer layer-frontend">
+    <span class="layer-label">(auth) — requer sessão válida</span>
+    <div class="card-grid" style="margin-top:16px">
+      <div class="card c-orange">
+        <div class="card-title">(auth)/layout.tsx</div>
+        <div class="card-sub">Sidebar + TopHeader + TrialBanner</div>
+        <span class="card-badge badge-orange">Shell</span>
+      </div>
+      <div class="card c-orange">
+        <div class="card-title">dashboard/page.tsx</div>
+        <div class="card-sub">Lista de mudanças, status badges</div>
+        <span class="card-badge badge-orange">Dashboard</span>
+      </div>
+      <div class="card c-orange">
+        <div class="card-title">dashboard/catalogo/page.tsx</div>
+        <div class="card-sub">Itens por categoria, filtro, ícones SVG</div>
+        <span class="card-badge badge-orange">Catálogo</span>
+      </div>
+      <div class="card c-orange">
+        <div class="card-title">dashboard/mudanca/[id]/page.tsx</div>
+        <div class="card-sub">Detalhes, cotações, canvas de carga interativo</div>
+        <span class="card-badge badge-orange">Mudança</span>
+      </div>
+      <div class="card c-orange">
+        <div class="card-title">dashboard/nova-mudanca/page.tsx</div>
+        <div class="card-sub">Formulário criação de mudança + PaywallGate</div>
+        <span class="card-badge badge-orange">Nova</span>
+      </div>
+      <div class="card c-orange">
+        <div class="card-title">settings/billing/page.tsx</div>
+        <div class="card-sub">Plano atual, histórico, botão portal Stripe</div>
+        <span class="card-badge badge-orange">Billing</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="section-heading">Componentes</p>
+  <div class="card-grid">
+    <div class="card c-orange">
+      <div class="card-title">components/layout/sidebar.tsx</div>
+      <div class="card-sub">Navegação lateral, links, avatar</div>
+    </div>
+    <div class="card c-orange">
+      <div class="card-title">components/layout/top-header.tsx</div>
+      <div class="card-sub">Breadcrumb + ações rápidas</div>
+    </div>
+    <div class="card c-orange">
+      <div class="card-title">components/layout/trial-banner.tsx</div>
+      <div class="card-sub">Banner de aviso de fim de trial</div>
+    </div>
+    <div class="card c-orange">
+      <div class="card-title">components/paywall/paywall-gate.tsx</div>
+      <div class="card-sub">Bloqueia feature por plano, mostra upgrade CTA</div>
+    </div>
+    <div class="card c-orange">
+      <div class="card-title">components/icons/item-icons.tsx</div>
+      <div class="card-sub">SVG icons para cada tipo de item do catálogo</div>
+    </div>
+    <div class="card c-orange">
+      <div class="card-title">components/ui/shuffle-grid.tsx</div>
+      <div class="card-sub">Animação de grid embaralhável (landing)</div>
+    </div>
+    <div class="card c-orange">
+      <div class="card-title">components/ui/grid-scan.tsx</div>
+      <div class="card-sub">Scan visual animado (landing)</div>
+    </div>
+    <div class="card c-orange">
+      <div class="card-title">components/layout/providers.tsx</div>
+      <div class="card-sub">SessionProvider + QueryClientProvider</div>
+    </div>
+  </div>
+
+  <p class="section-heading">Estado do Cliente</p>
+  <div class="card-grid">
+    <div class="card c-orange">
+      <div class="card-title">hooks/use-mudancas.ts</div>
+      <div class="card-sub">TanStack Query: list, create, update mudancas</div>
+    </div>
+    <div class="card c-orange">
+      <div class="card-title">hooks/use-catalogo.ts</div>
+      <div class="card-sub">TanStack Query: itens por categoria</div>
+    </div>
+    <div class="card c-orange">
+      <div class="card-title">hooks/use-carga.ts</div>
+      <div class="card-sub">TanStack Query: canvas layout mutations</div>
+    </div>
+  </div>
+
+  <p class="section-heading">UI Library</p>
+  <div class="card-grid">
+    <div class="card c-gray"><div class="card-title">Button</div></div>
+    <div class="card c-gray"><div class="card-title">Card</div></div>
+    <div class="card c-gray"><div class="card-title">Badge</div></div>
+    <div class="card c-gray"><div class="card-title">Avatar</div></div>
+    <div class="card c-gray"><div class="card-title">Dialog</div></div>
+    <div class="card c-gray"><div class="card-title">Input</div></div>
+    <div class="card c-gray"><div class="card-title">Label</div></div>
+    <div class="card c-gray"><div class="card-title">Checkbox</div></div>
+    <div class="card c-gray"><div class="card-title">Separator</div></div>
+    <div class="card c-gray"><div class="card-title">DropdownMenu</div></div>
+    <div class="card c-gray"><div class="card-title">Alert</div></div>
+    <div class="card c-gray"><div class="card-title">Sonner Toast</div></div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB: API & BACKEND
+══════════════════════════════════════════════════════════════ -->
+<section id="tab-api" class="tab-content">
+
+  <p class="section-heading">Route Handlers (/api)</p>
+
+  <div class="layer layer-api">
+    <span class="layer-label">API Routes</span>
+    <div class="card-grid" style="margin-top:16px">
+
+      <div class="card c-navy">
+        <div class="card-title">GET /api/mudancas</div>
+        <div class="card-sub">Lista mudanças do usuário autenticado. Requer auth().</div>
+        <span class="card-badge badge-navy">Protected</span>
+      </div>
+      <div class="card c-navy">
+        <div class="card-title">POST /api/mudancas</div>
+        <div class="card-sub">Cria nova mudança. Valida limite de plano FREE (1 ativa).</div>
+        <span class="card-badge badge-navy">Plan-gated</span>
+      </div>
+      <div class="card c-navy">
+        <div class="card-title">GET /api/mudancas/[id]</div>
+        <div class="card-sub">Detalhes de uma mudança + cotações + cargaLayout.</div>
+        <span class="card-badge badge-navy">Protected</span>
+      </div>
+      <div class="card c-navy">
+        <div class="card-title">PATCH /api/mudancas/[id]</div>
+        <div class="card-sub">Atualiza status, caminhão, endereços.</div>
+        <span class="card-badge badge-navy">Protected</span>
+      </div>
+      <div class="card c-navy">
+        <div class="card-title">GET /api/catalogo/itens</div>
+        <div class="card-sub">Lista itens do catálogo global com filtro de categoria.</div>
+        <span class="card-badge badge-navy">Protected</span>
+      </div>
+      <div class="card c-navy">
+        <div class="card-title">GET /api/catalogo/caminhoes</div>
+        <div class="card-sub">Lista tipos de caminhão disponíveis.</div>
+        <span class="card-badge badge-navy">Protected</span>
+      </div>
+      <div class="card c-navy">
+        <div class="card-title">GET /api/catalogo/transportadoras</div>
+        <div class="card-sub">Lista transportadoras com filtro de cidade.</div>
+        <span class="card-badge badge-navy">Protected</span>
+      </div>
+      <div class="card c-navy">
+        <div class="card-title">POST /api/carga/layout</div>
+        <div class="card-sub">Cria/atualiza posição de itens no canvas.</div>
+        <span class="card-badge badge-navy">Plan-gated</span>
+      </div>
+      <div class="card c-navy">
+        <div class="card-title">POST /api/stripe/checkout</div>
+        <div class="card-sub">Cria Stripe Checkout Session para upgrade para PRO.</div>
+        <span class="card-badge badge-navy">Billing</span>
+      </div>
+      <div class="card c-navy">
+        <div class="card-title">POST /api/stripe/portal</div>
+        <div class="card-sub">Redireciona para Stripe Customer Portal.</div>
+        <span class="card-badge badge-navy">Billing</span>
+      </div>
+      <div class="card c-navy">
+        <div class="card-title">POST /api/stripe/webhook</div>
+        <div class="card-sub">Processa eventos: checkout.completed, subscription.*</div>
+        <span class="card-badge badge-navy">Webhook</span>
+      </div>
+      <div class="card c-navy">
+        <div class="card-title">/api/auth/*</div>
+        <div class="card-sub">NextAuth handlers: signin, signout, callback, session.</div>
+        <span class="card-badge badge-navy">Auth.js</span>
+      </div>
+
+    </div>
+  </div>
+
+  <p class="section-heading">Serviços Backend</p>
+
+  <div class="layer layer-backend">
+    <span class="layer-label">lib/ — Serviços</span>
+    <div class="card-grid" style="margin-top:16px">
+      <div class="card c-green">
+        <div class="card-title">lib/auth.ts</div>
+        <div class="card-sub">NextAuth config, JWT callbacks, criação de usuário com trial de 14 dias no signup.</div>
+        <span class="card-badge badge-green">Auth.js v5</span>
+      </div>
+      <div class="card c-green">
+        <div class="card-title">lib/db.ts</div>
+        <div class="card-sub">Singleton PrismaClient. Evita múltiplas conexões em dev.</div>
+        <span class="card-badge badge-green">Prisma 6</span>
+      </div>
+      <div class="card c-green">
+        <div class="card-title">lib/subscription.ts</div>
+        <div class="card-sub">Plan limits: mudancasAtivas, itensNoCanvas, cotacoesPorMudanca. Fonte única de verdade para feature gates.</div>
+        <span class="card-badge badge-green">Plans</span>
+      </div>
+      <div class="card c-green">
+        <div class="card-title">lib/stripe.ts</div>
+        <div class="card-sub">Lazy Proxy para Stripe SDK. Checkout sessions sem trial_period_days. API v2026-02-25.clover</div>
+        <span class="card-badge badge-green">Stripe v20</span>
+      </div>
+      <div class="card c-green">
+        <div class="card-title">lib/validations.ts</div>
+        <div class="card-sub">Zod schemas para todos os inputs. Usado em API routes e formulários.</div>
+        <span class="card-badge badge-green">Zod</span>
+      </div>
+      <div class="card c-green">
+        <div class="card-title">lib/email.ts</div>
+        <div class="card-sub">Resend client para envio de Magic Link e notificações.</div>
+        <span class="card-badge badge-green">Resend</span>
+      </div>
+      <div class="card c-green">
+        <div class="card-title">middleware.ts</div>
+        <div class="card-sub">Edge Function &lt;1MB. Verifica cookie authjs.session-token diretamente (sem importar Auth.js).</div>
+        <span class="card-badge badge-green">Edge</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="section-heading">Stripe Webhook Events</p>
+  <div class="card-grid">
+    <div class="card c-green"><div class="card-title">checkout.session.completed</div><div class="card-sub">Atualiza user.plan = PRO, salva stripeSubscriptionId</div></div>
+    <div class="card c-green"><div class="card-title">customer.subscription.updated</div><div class="card-sub">Atualiza período e status da subscription</div></div>
+    <div class="card c-green"><div class="card-title">customer.subscription.deleted</div><div class="card-sub">Reverte user.plan para FREE</div></div>
+    <div class="card c-green"><div class="card-title">invoice.payment_failed</div><div class="card-sub">Log de falha de pagamento</div></div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB: DATABASE — ERD
+══════════════════════════════════════════════════════════════ -->
+<section id="tab-database" class="tab-content">
+
+  <p class="section-heading">Diagrama de Entidade-Relacionamento</p>
+
+  <div class="erd-wrap">
+    <svg class="erd-svg" viewBox="0 0 1100 820" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L8,3 L0,6Z" fill="#94A3B8"/>
+        </marker>
+        <marker id="arrow-o" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L8,3 L0,6Z" fill="#F37021"/>
+        </marker>
+      </defs>
+
+      <!-- ─── User ─────────────────────────────── -->
+      <g transform="translate(20,20)">
+        <rect width="210" height="230" rx="10" fill="#fff" stroke="#B0ADDF" stroke-width="1.5"/>
+        <rect width="210" height="36" rx="10" fill="#1B1660"/>
+        <rect width="210" height="26" y="10" fill="#1B1660"/>
+        <text x="105" y="22" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="system-ui">User</text>
+        <text x="10" y="56"  font-size="10" fill="#374151" font-family="system-ui">id         cuid (PK)</text>
+        <text x="10" y="73"  font-size="10" fill="#374151" font-family="system-ui">name       String?</text>
+        <text x="10" y="90"  font-size="10" fill="#374151" font-family="system-ui">email      String @unique</text>
+        <text x="10" y="107" font-size="10" fill="#374151" font-family="system-ui">plan       Plan (FREE|TRIAL|PRO)</text>
+        <text x="10" y="124" font-size="10" fill="#374151" font-family="system-ui">stripeCustomerId  String?</text>
+        <text x="10" y="141" font-size="10" fill="#374151" font-family="system-ui">stripeSubscriptionId  String?</text>
+        <text x="10" y="158" font-size="10" fill="#374151" font-family="system-ui">stripePriceId  String?</text>
+        <text x="10" y="175" font-size="10" fill="#374151" font-family="system-ui">stripeCurrentPeriodEnd  DateTime?</text>
+        <text x="10" y="192" font-size="10" fill="#374151" font-family="system-ui">trialEndsAt  DateTime?</text>
+        <text x="10" y="209" font-size="10" fill="#374151" font-family="system-ui">createdAt / updatedAt</text>
+      </g>
+
+      <!-- ─── Account ───────────────────────────── -->
+      <g transform="translate(20,290)">
+        <rect width="210" height="155" rx="10" fill="#fff" stroke="#B0ADDF" stroke-width="1.5"/>
+        <rect width="210" height="36" rx="10" fill="#1B1660"/>
+        <rect width="210" height="26" y="10" fill="#1B1660"/>
+        <text x="105" y="22" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="system-ui">Account</text>
+        <text x="10" y="56"  font-size="10" fill="#374151" font-family="system-ui">provider + providerAccountId (PK)</text>
+        <text x="10" y="73"  font-size="10" fill="#374151" font-family="system-ui">userId     FK → User</text>
+        <text x="10" y="90"  font-size="10" fill="#374151" font-family="system-ui">type       String</text>
+        <text x="10" y="107" font-size="10" fill="#374151" font-family="system-ui">access_token / refresh_token</text>
+        <text x="10" y="124" font-size="10" fill="#374151" font-family="system-ui">id_token   String?</text>
+        <text x="10" y="141" font-size="10" fill="#374151" font-family="system-ui">expires_at / scope</text>
+      </g>
+
+      <!-- ─── Session ───────────────────────────── -->
+      <g transform="translate(20,490)">
+        <rect width="210" height="105" rx="10" fill="#fff" stroke="#B0ADDF" stroke-width="1.5"/>
+        <rect width="210" height="36" rx="10" fill="#1B1660"/>
+        <rect width="210" height="26" y="10" fill="#1B1660"/>
+        <text x="105" y="22" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="system-ui">Session</text>
+        <text x="10" y="56"  font-size="10" fill="#374151" font-family="system-ui">sessionToken  @unique</text>
+        <text x="10" y="73"  font-size="10" fill="#374151" font-family="system-ui">userId        FK → User</text>
+        <text x="10" y="90"  font-size="10" fill="#374151" font-family="system-ui">expires       DateTime</text>
+      </g>
+
+      <!-- ─── Mudanca ───────────────────────────── -->
+      <g transform="translate(290,20)">
+        <rect width="210" height="190" rx="10" fill="#fff" stroke="#F9C097" stroke-width="1.5"/>
+        <rect width="210" height="36" rx="10" fill="#F37021"/>
+        <rect width="210" height="26" y="10" fill="#F37021"/>
+        <text x="105" y="22" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="system-ui">Mudanca</text>
+        <text x="10" y="56"  font-size="10" fill="#374151" font-family="system-ui">id              cuid (PK)</text>
+        <text x="10" y="73"  font-size="10" fill="#374151" font-family="system-ui">userId          FK → User</text>
+        <text x="10" y="90"  font-size="10" fill="#374151" font-family="system-ui">enderecoOrigem  String</text>
+        <text x="10" y="107" font-size="10" fill="#374151" font-family="system-ui">enderecoDestino String</text>
+        <text x="10" y="124" font-size="10" fill="#374151" font-family="system-ui">dataDesejada    DateTime?</text>
+        <text x="10" y="141" font-size="10" fill="#374151" font-family="system-ui">caminhaoId      FK → Caminhao?</text>
+        <text x="10" y="158" font-size="10" fill="#374151" font-family="system-ui">status          MudancaStatus</text>
+        <text x="10" y="175" font-size="10" fill="#6B7280" font-size="9" font-family="system-ui">[RASCUNHO|COTANDO|CONFIRMADA|CONCLUIDA]</text>
+      </g>
+
+      <!-- ─── Cotacao ───────────────────────────── -->
+      <g transform="translate(290,270)">
+        <rect width="210" height="175" rx="10" fill="#fff" stroke="#F9C097" stroke-width="1.5"/>
+        <rect width="210" height="36" rx="10" fill="#F37021"/>
+        <rect width="210" height="26" y="10" fill="#F37021"/>
+        <text x="105" y="22" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="system-ui">Cotacao</text>
+        <text x="10" y="56"  font-size="10" fill="#374151" font-family="system-ui">id                cuid (PK)</text>
+        <text x="10" y="73"  font-size="10" fill="#374151" font-family="system-ui">mudancaId         FK → Mudanca</text>
+        <text x="10" y="90"  font-size="10" fill="#374151" font-family="system-ui">transportadoraId  FK → Transportadora</text>
+        <text x="10" y="107" font-size="10" fill="#374151" font-family="system-ui">precoCentavos     Int</text>
+        <text x="10" y="124" font-size="10" fill="#374151" font-family="system-ui">dataDisponivel    DateTime</text>
+        <text x="10" y="141" font-size="10" fill="#374151" font-family="system-ui">seguroIncluso     Boolean</text>
+        <text x="10" y="158" font-size="10" fill="#374151" font-family="system-ui">validade          DateTime</text>
+      </g>
+
+      <!-- ─── Transportadora ────────────────────── -->
+      <g transform="translate(290,500)">
+        <rect width="210" height="175" rx="10" fill="#fff" stroke="#86EFAC" stroke-width="1.5"/>
+        <rect width="210" height="36" rx="10" fill="#16A34A"/>
+        <rect width="210" height="26" y="10" fill="#16A34A"/>
+        <text x="105" y="22" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="system-ui">Transportadora</text>
+        <text x="10" y="56"  font-size="10" fill="#374151" font-family="system-ui">id              cuid (PK)</text>
+        <text x="10" y="73"  font-size="10" fill="#374151" font-family="system-ui">nome            String</text>
+        <text x="10" y="90"  font-size="10" fill="#374151" font-family="system-ui">notaMedia       Float</text>
+        <text x="10" y="107" font-size="10" fill="#374151" font-family="system-ui">totalAvaliacoes Int</text>
+        <text x="10" y="124" font-size="10" fill="#374151" font-family="system-ui">cidade          String @index</text>
+        <text x="10" y="141" font-size="10" fill="#374151" font-family="system-ui">tiposCaminhao   String[]</text>
+        <text x="10" y="158" font-size="10" fill="#374151" font-family="system-ui">logoUrl         String?</text>
+      </g>
+
+      <!-- ─── CargaLayout ───────────────────────── -->
+      <g transform="translate(570,20)">
+        <rect width="210" height="160" rx="10" fill="#fff" stroke="#F9C097" stroke-width="1.5"/>
+        <rect width="210" height="36" rx="10" fill="#F37021"/>
+        <rect width="210" height="26" y="10" fill="#F37021"/>
+        <text x="105" y="22" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="system-ui">CargaLayout</text>
+        <text x="10" y="56"  font-size="10" fill="#374151" font-family="system-ui">id                  cuid (PK)</text>
+        <text x="10" y="73"  font-size="10" fill="#374151" font-family="system-ui">mudancaId           FK → Mudanca @unique</text>
+        <text x="10" y="90"  font-size="10" fill="#374151" font-family="system-ui">caminhaoId          FK → Caminhao</text>
+        <text x="10" y="107" font-size="10" fill="#374151" font-family="system-ui">ocupacaoPercentual  Float</text>
+        <text x="10" y="124" font-size="10" fill="#374151" font-family="system-ui">createdAt / updatedAt</text>
+      </g>
+
+      <!-- ─── CargaItem ─────────────────────────── -->
+      <g transform="translate(570,240)">
+        <rect width="210" height="160" rx="10" fill="#fff" stroke="#F9C097" stroke-width="1.5"/>
+        <rect width="210" height="36" rx="10" fill="#F37021"/>
+        <rect width="210" height="26" y="10" fill="#F37021"/>
+        <text x="105" y="22" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="system-ui">CargaItem</text>
+        <text x="10" y="56"  font-size="10" fill="#374151" font-family="system-ui">id             cuid (PK)</text>
+        <text x="10" y="73"  font-size="10" fill="#374151" font-family="system-ui">cargaLayoutId  FK → CargaLayout</text>
+        <text x="10" y="90"  font-size="10" fill="#374151" font-family="system-ui">itemId         FK → Item</text>
+        <text x="10" y="107" font-size="10" fill="#374151" font-family="system-ui">x / y          Float (posição canvas)</text>
+        <text x="10" y="124" font-size="10" fill="#374151" font-family="system-ui">rotacao        Int (graus)</text>
+      </g>
+
+      <!-- ─── Item ──────────────────────────────── -->
+      <g transform="translate(570,460)">
+        <rect width="210" height="195" rx="10" fill="#fff" stroke="#86EFAC" stroke-width="1.5"/>
+        <rect width="210" height="36" rx="10" fill="#16A34A"/>
+        <rect width="210" height="26" y="10" fill="#16A34A"/>
+        <text x="105" y="22" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="system-ui">Item</text>
+        <text x="10" y="56"  font-size="10" fill="#374151" font-family="system-ui">id             cuid (PK)</text>
+        <text x="10" y="73"  font-size="10" fill="#374151" font-family="system-ui">nome           String</text>
+        <text x="10" y="90"  font-size="10" fill="#374151" font-family="system-ui">categoria      CategoriaItem @index</text>
+        <text x="10" y="107" font-size="10" fill="#374151" font-family="system-ui">larguraCm / alturaCm / profundidadeCm</text>
+        <text x="10" y="124" font-size="10" fill="#374151" font-family="system-ui">pesoKg / volumeM3  Float</text>
+        <text x="10" y="141" font-size="10" fill="#374151" font-family="system-ui">customizado    Boolean</text>
+        <text x="10" y="158" font-size="10" fill="#374151" font-family="system-ui">userId         String? (custom item)</text>
+        <text x="10" y="175" font-size="10" fill="#374151" font-family="system-ui">iconeUrl       String?</text>
+      </g>
+
+      <!-- ─── Caminhao ───────────────────────────── -->
+      <g transform="translate(850,20)">
+        <rect width="210" height="190" rx="10" fill="#fff" stroke="#86EFAC" stroke-width="1.5"/>
+        <rect width="210" height="36" rx="10" fill="#16A34A"/>
+        <rect width="210" height="26" y="10" fill="#16A34A"/>
+        <text x="105" y="22" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="system-ui">Caminhao</text>
+        <text x="10" y="56"  font-size="10" fill="#374151" font-family="system-ui">id             cuid (PK)</text>
+        <text x="10" y="73"  font-size="10" fill="#374151" font-family="system-ui">nome           String</text>
+        <text x="10" y="90"  font-size="10" fill="#374151" font-family="system-ui">tipo           String</text>
+        <text x="10" y="107" font-size="10" fill="#374151" font-family="system-ui">capacidadeM3 / capacidadeKg</text>
+        <text x="10" y="124" font-size="10" fill="#374151" font-family="system-ui">comprimentoCm / larguraCm</text>
+        <text x="10" y="141" font-size="10" fill="#374151" font-family="system-ui">alturaCm</text>
+        <text x="10" y="158" font-size="10" fill="#374151" font-family="system-ui">imagemUrl      String?</text>
+      </g>
+
+      <!-- ─── Relation lines ─────────────────────── -->
+
+      <!-- User → Mudanca (1:N) -->
+      <line x1="230" y1="100" x2="290" y2="100" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="4,3"/>
+      <text x="237" y="95" font-size="9" fill="#94A3B8" font-family="system-ui">1:N</text>
+
+      <!-- User → Account (1:N) -->
+      <line x1="125" y1="250" x2="125" y2="290" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="4,3"/>
+      <text x="130" y="274" font-size="9" fill="#94A3B8" font-family="system-ui">1:N</text>
+
+      <!-- User → Session (1:N) -->
+      <line x1="125" y1="250" x2="125" y2="490" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="4,3"/>
+
+      <!-- Mudanca → Cotacao (1:N) -->
+      <line x1="395" y1="210" x2="395" y2="270" stroke="#F37021" stroke-width="1.5" marker-end="url(#arrow-o)"/>
+      <text x="400" y="244" font-size="9" fill="#F37021" font-family="system-ui">1:N</text>
+
+      <!-- Mudanca → CargaLayout (1:1) -->
+      <line x1="500" y1="100" x2="570" y2="100" stroke="#F37021" stroke-width="1.5" marker-end="url(#arrow-o)"/>
+      <text x="507" y="95" font-size="9" fill="#F37021" font-family="system-ui">1:1</text>
+
+      <!-- CargaLayout → CargaItem (1:N) -->
+      <line x1="675" y1="180" x2="675" y2="240" stroke="#F37021" stroke-width="1.5" marker-end="url(#arrow-o)"/>
+      <text x="680" y="214" font-size="9" fill="#F37021" font-family="system-ui">1:N</text>
+
+      <!-- CargaItem → Item (N:1) -->
+      <line x1="675" y1="400" x2="675" y2="460" stroke="#16A34A" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <text x="680" y="434" font-size="9" fill="#16A34A" font-family="system-ui">N:1</text>
+
+      <!-- Cotacao → Transportadora (N:1) -->
+      <line x1="395" y1="445" x2="395" y2="500" stroke="#16A34A" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <text x="400" y="476" font-size="9" fill="#16A34A" font-family="system-ui">N:1</text>
+
+      <!-- Mudanca → Caminhao (N:1) -->
+      <line x1="500" y1="80" x2="850" y2="80" stroke="#16A34A" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="4,3"/>
+      <text x="650" y="75" font-size="9" fill="#16A34A" font-family="system-ui">N:1</text>
+
+      <!-- CargaLayout → Caminhao (N:1) -->
+      <line x1="780" y1="90" x2="850" y2="90" stroke="#16A34A" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="4,3"/>
+
+      <!-- enum labels -->
+      <text x="10" y="760" font-size="10" fill="#6B7280" font-family="system-ui">Enums:  Plan [FREE · TRIAL · PRO]   |   MudancaStatus [RASCUNHO · COTANDO · CONFIRMADA · CONCLUIDA]   |   CategoriaItem [QUARTO · COZINHA · SALA · ESCRITORIO · BANHEIRO · AREA_SERVICO · CAIXAS]</text>
+      <text x="10" y="778" font-size="10" fill="#6B7280" font-family="system-ui">DB:  PostgreSQL on Neon (sa-east-1)   |   ORM: Prisma 6   |   Connection: DATABASE_URL env var</text>
+
+    </svg>
+  </div>
+
+  <p class="section-heading">Índices e Constraints</p>
+  <div class="card-grid">
+    <div class="card c-amber"><div class="card-title">User.email @unique</div></div>
+    <div class="card c-amber"><div class="card-title">User.stripeCustomerId @unique</div></div>
+    <div class="card c-amber"><div class="card-title">User.stripeSubscriptionId @unique</div></div>
+    <div class="card c-amber"><div class="card-title">Mudanca @@index([userId])</div></div>
+    <div class="card c-amber"><div class="card-title">CargaLayout.mudancaId @unique</div></div>
+    <div class="card c-amber"><div class="card-title">CargaItem @@index([cargaLayoutId])</div></div>
+    <div class="card c-amber"><div class="card-title">Item @@index([categoria])</div></div>
+    <div class="card c-amber"><div class="card-title">Transportadora @@index([cidade])</div></div>
+    <div class="card c-amber"><div class="card-title">Cotacao @@index([mudancaId])</div></div>
+    <div class="card c-amber"><div class="card-title">Account @@id([provider, providerAccountId])</div></div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB: AUTH & SEGURANÇA
+══════════════════════════════════════════════════════════════ -->
+<section id="tab-auth" class="tab-content">
+
+  <p class="section-heading">Estratégia de 3 Camadas</p>
+
+  <div class="auth-flow">
+
+    <div class="auth-step">
+      <div class="auth-step-num" style="background:var(--gray)">1</div>
+      <div>
+        <h3>middleware.ts — Edge Function</h3>
+        <p>Roda em toda requisição antes do Next.js. Verifica cookie <code>authjs.session-token</code> diretamente (sem importar Auth.js para manter bundle &lt; 1MB no Vercel free tier). Redireciona /auth/* rotas para login se cookie ausente.</p>
+      </div>
+    </div>
+
+    <div class="auth-step">
+      <div class="auth-step-num" style="background:var(--navy)">2</div>
+      <div>
+        <h3>Server Component — auth() check</h3>
+        <p>Cada layout e page protegido chama <code>const session = await auth()</code> do <code>lib/auth.ts</code>. Se <code>session</code> é null, redireciona para <code>/login</code>. Garante proteção mesmo com middleware bypassado.</p>
+      </div>
+    </div>
+
+    <div class="auth-step">
+      <div class="auth-step-num" style="background:var(--orange)">3</div>
+      <div>
+        <h3>API Route — auth() + userId isolation</h3>
+        <p>Todo Route Handler valida <code>auth()</code> e usa <code>session.user.id</code> em todas as queries Prisma. Garante isolamento de dados — usuário nunca acessa dados de outro tenant.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="section-heading">Providers de Autenticação</p>
+  <div class="card-grid">
+    <div class="card c-navy">
+      <div class="card-title">Google OAuth 2.0</div>
+      <div class="card-sub">Configurado no Google Cloud Console. Client ID + Secret em env vars. Redirect URI registrado.</div>
+      <span class="card-badge badge-navy">OAuth</span>
+    </div>
+    <div class="card c-navy">
+      <div class="card-title">Email Magic Link</div>
+      <div class="card-sub">Resend envia email com token de sessão único. Sem senha. VerificationToken armazenado no DB.</div>
+      <span class="card-badge badge-navy">Passwordless</span>
+    </div>
+  </div>
+
+  <p class="section-heading">JWT Callbacks (lib/auth.ts)</p>
+  <div class="card-grid">
+    <div class="card c-green">
+      <div class="card-title">jwt() callback</div>
+      <div class="card-sub">Inclui user.id, user.plan e user.trialEndsAt no token JWT para evitar lookup ao DB a cada requisição.</div>
+    </div>
+    <div class="card c-green">
+      <div class="card-title">session() callback</div>
+      <div class="card-sub">Expõe user.id e user.plan via <code>useSession()</code> no cliente e <code>auth()</code> no servidor.</div>
+    </div>
+    <div class="card c-green">
+      <div class="card-title">signIn() callback</div>
+      <div class="card-sub">No primeiro login, seta <code>plan = TRIAL</code> e <code>trialEndsAt = now() + 14 dias</code>.</div>
+    </div>
+  </div>
+
+  <p class="section-heading">Feature Gating por Plano</p>
+  <div class="card-grid">
+    <div class="card c-orange">
+      <div class="card-title">lib/subscription.ts</div>
+      <div class="card-sub">Exporta <code>PLAN_LIMITS</code> com limites por plano. Funções <code>canCreateMudanca()</code>, <code>canAddItem()</code>.</div>
+    </div>
+    <div class="card c-orange">
+      <div class="card-title">&lt;PaywallGate&gt;</div>
+      <div class="card-sub">Componente wrapper. Se usuário não tem plano suficiente, renderiza CTA de upgrade em vez do children.</div>
+    </div>
+    <div class="card c-orange">
+      <div class="card-title">API Plan Check</div>
+      <div class="card-sub">Route handlers consultam <code>PLAN_LIMITS</code> antes de criar recursos. Retorna 403 com mensagem de upgrade.</div>
+    </div>
+  </div>
+
+  <p class="section-heading">Fluxo de Upgrade (Trial → PRO)</p>
+
+  <div class="flow-wrap">
+    <div class="flow-diagram">
+      <div class="flow-node" style="border-color:var(--orange)">
+        <span class="fn-icon">💳</span>
+        <div class="fn-title">Usuário clica Upgrade</div>
+        <div class="fn-sub">PaywallGate / Billing page</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 40 20"><line x1="2" y1="10" x2="36" y2="10" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#a)"/></svg></div>
+      <div class="flow-node" style="border-color:var(--navy)">
+        <span class="fn-icon">🔌</span>
+        <div class="fn-title">POST /api/stripe/checkout</div>
+        <div class="fn-sub">Cria Checkout Session</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 40 20"><line x1="2" y1="10" x2="36" y2="10" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#a)"/></svg></div>
+      <div class="flow-node" style="border-color:var(--gray)">
+        <span class="fn-icon">💰</span>
+        <div class="fn-title">Stripe Checkout</div>
+        <div class="fn-sub">Sem trial (imediato)</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 40 20"><line x1="2" y1="10" x2="36" y2="10" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#a)"/></svg></div>
+      <div class="flow-node" style="border-color:var(--navy)">
+        <span class="fn-icon">🔗</span>
+        <div class="fn-title">POST /api/stripe/webhook</div>
+        <div class="fn-sub">checkout.session.completed</div>
+      </div>
+      <div class="flow-arrow"><svg viewBox="0 0 40 20"><line x1="2" y1="10" x2="36" y2="10" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#a)"/></svg></div>
+      <div class="flow-node" style="border-color:var(--green)">
+        <span class="fn-icon">✅</span>
+        <div class="fn-title">user.plan = PRO</div>
+        <div class="fn-sub">Prisma update</div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB: PLANOS
+══════════════════════════════════════════════════════════════ -->
+<section id="tab-plans" class="tab-content">
+
+  <p class="section-heading">Planos de Assinatura</p>
+
+  <div class="plan-grid">
+
+    <div class="plan-card">
+      <div class="plan-name" style="color:var(--gray)">FREE</div>
+      <div class="plan-price">R$ 0</div>
+      <div class="plan-feature"><strong>1</strong> mudança ativa</div>
+      <div class="plan-feature"><strong>15</strong> itens no canvas</div>
+      <div class="plan-feature"><strong>3</strong> cotações por mudança</div>
+      <div class="plan-feature" style="color:#DC2626">Sem filtros avançados</div>
+      <div class="plan-feature" style="color:#DC2626">Sem export PDF</div>
+    </div>
+
+    <div class="plan-card highlight">
+      <div class="plan-name" style="color:var(--orange)">TRIAL</div>
+      <div class="plan-price" style="font-size:1.3rem">14 dias grátis</div>
+      <div class="plan-feature"><strong>Ilimitado</strong> — acesso PRO completo</div>
+      <div class="plan-feature">Começa automaticamente no 1º signup</div>
+      <div class="plan-feature">Após 14 dias → regride para FREE</div>
+      <div class="plan-feature" style="color:var(--orange)">Upgrade disponível a qualquer momento</div>
+    </div>
+
+    <div class="plan-card" style="border-color:var(--navy)">
+      <div class="plan-name" style="color:var(--navy)">PRO</div>
+      <div class="plan-price">R$ 29,90<span style="font-size:.9rem;font-weight:400">/mês</span></div>
+      <div class="plan-feature"><strong>Ilimitado</strong> mudanças ativas</div>
+      <div class="plan-feature"><strong>Ilimitado</strong> itens no canvas</div>
+      <div class="plan-feature"><strong>Ilimitado</strong> cotações</div>
+      <div class="plan-feature">Filtros avançados de catálogo</div>
+      <div class="plan-feature">Export PDF / compartilhamento</div>
+    </div>
+
+  </div>
+
+  <p class="section-heading" style="margin-top:32px">Limites por Plano (lib/subscription.ts)</p>
+  <div class="erd-wrap" style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:.82rem;min-width:500px">
+      <thead>
+        <tr style="background:var(--bg)">
+          <th style="padding:10px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--navy)">Limite</th>
+          <th style="padding:10px 14px;text-align:center;border-bottom:2px solid var(--border);color:var(--gray)">FREE</th>
+          <th style="padding:10px 14px;text-align:center;border-bottom:2px solid var(--border);color:var(--orange)">TRIAL</th>
+          <th style="padding:10px 14px;text-align:center;border-bottom:2px solid var(--border);color:var(--navy)">PRO</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:10px 14px">mudancasAtivas</td>
+          <td style="padding:10px 14px;text-align:center;font-weight:700">1</td>
+          <td style="padding:10px 14px;text-align:center;font-weight:700;color:var(--orange)">∞</td>
+          <td style="padding:10px 14px;text-align:center;font-weight:700;color:var(--navy)">∞</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);background:var(--bg)">
+          <td style="padding:10px 14px">itensNoCanvas</td>
+          <td style="padding:10px 14px;text-align:center;font-weight:700">15</td>
+          <td style="padding:10px 14px;text-align:center;font-weight:700;color:var(--orange)">∞</td>
+          <td style="padding:10px 14px;text-align:center;font-weight:700;color:var(--navy)">∞</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:10px 14px">cotacoesPorMudanca</td>
+          <td style="padding:10px 14px;text-align:center;font-weight:700">3</td>
+          <td style="padding:10px 14px;text-align:center;font-weight:700;color:var(--orange)">∞</td>
+          <td style="padding:10px 14px;text-align:center;font-weight:700;color:var(--navy)">∞</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 14px">filtrosAvancados</td>
+          <td style="padding:10px 14px;text-align:center;color:#DC2626;font-weight:700">✗</td>
+          <td style="padding:10px 14px;text-align:center;font-weight:700;color:var(--orange)">✓</td>
+          <td style="padding:10px 14px;text-align:center;font-weight:700;color:var(--navy)">✓</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="section-heading">Stripe SDK v20 — Notas Importantes</p>
+  <div class="card-grid">
+    <div class="card c-gray">
+      <div class="card-title">API Version</div>
+      <div class="card-sub">2026-02-25.clover</div>
+    </div>
+    <div class="card c-gray">
+      <div class="card-title">current_period_end removido</div>
+      <div class="card-sub">Usar <code>invoice.period_end</code> via <code>latest_invoice</code> em vez do campo da Subscription.</div>
+    </div>
+    <div class="card c-gray">
+      <div class="card-title">invoice.subscription movido</div>
+      <div class="card-sub"><code>invoice.parent.subscription_details.subscription</code></div>
+    </div>
+    <div class="card c-gray">
+      <div class="card-title">Lazy Proxy em lib/stripe.ts</div>
+      <div class="card-sub">Evita crash no build quando STRIPE_SECRET_KEY não está presente.</div>
+    </div>
+    <div class="card c-gray">
+      <div class="card-title">Sem trial_period_days no Checkout</div>
+      <div class="card-sub">Upgrade durante trial é imediato. Cobrança ocorre no momento do upgrade.</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB: ESTRUTURA DE ARQUIVOS
+══════════════════════════════════════════════════════════════ -->
+<section id="tab-files" class="tab-content">
+
+  <p class="section-heading">Estrutura do Projeto</p>
+
+  <div class="file-tree">
+<span class="ft-dir">muda-facil/</span>
+├── <span class="ft-dir">app/</span>                         <span class="ft-note"># Next.js App Router (NO src/)</span>
+│   ├── <span class="ft-orange">layout.tsx</span>               <span class="ft-note"># Root layout — providers, fonts</span>
+│   ├── <span class="ft-orange">page.tsx</span>                 <span class="ft-note"># Landing page pública</span>
+│   ├── <span class="ft-orange">globals.css</span>              <span class="ft-note"># Tailwind CSS 4 + CSS vars</span>
+│   ├── <span class="ft-dir">(public)/</span>                <span class="ft-note"># Páginas sem autenticação</span>
+│   │   ├── <span class="ft-dir">login/</span>
+│   │   │   └── <span class="ft-orange">page.tsx</span>
+│   │   └── <span class="ft-dir">pricing/</span>
+│   │       └── <span class="ft-orange">page.tsx</span>
+│   └── <span class="ft-dir">(auth)/</span>                  <span class="ft-note"># Páginas protegidas</span>
+│       ├── <span class="ft-orange">layout.tsx</span>           <span class="ft-note"># Shell: Sidebar + TopHeader + TrialBanner</span>
+│       ├── <span class="ft-dir">dashboard/</span>
+│       │   ├── <span class="ft-orange">page.tsx</span>         <span class="ft-note"># Lista mudanças</span>
+│       │   ├── <span class="ft-dir">catalogo/</span>
+│       │   │   └── <span class="ft-orange">page.tsx</span>     <span class="ft-note"># Catálogo de itens</span>
+│       │   ├── <span class="ft-dir">mudanca/[id]/</span>
+│       │   │   └── <span class="ft-orange">page.tsx</span>     <span class="ft-note"># Detalhe + canvas de carga</span>
+│       │   └── <span class="ft-dir">nova-mudanca/</span>
+│       │       └── <span class="ft-orange">page.tsx</span>     <span class="ft-note"># Formulário + PaywallGate</span>
+│       └── <span class="ft-dir">settings/billing/</span>
+│           └── <span class="ft-orange">page.tsx</span>         <span class="ft-note"># Gerenciar plano</span>
+│
+├── <span class="ft-dir">app/api/</span>                     <span class="ft-note"># Route Handlers</span>
+│   ├── <span class="ft-dir">auth/[...nextauth]/</span>      <span class="ft-note"># Auth.js handler</span>
+│   ├── <span class="ft-dir">mudancas/</span>                <span class="ft-note"># CRUD mudanças</span>
+│   ├── <span class="ft-dir">catalogo/</span>                <span class="ft-note"># itens, caminhoes, transportadoras</span>
+│   ├── <span class="ft-dir">carga/</span>                   <span class="ft-note"># canvas layout mutations</span>
+│   └── <span class="ft-dir">stripe/</span>
+│       ├── <span class="ft-dir">checkout/</span>            <span class="ft-note"># Cria sessão de pagamento</span>
+│       ├── <span class="ft-dir">portal/</span>              <span class="ft-note"># Customer portal</span>
+│       └── <span class="ft-dir">webhook/</span>             <span class="ft-note"># Eventos Stripe</span>
+│
+├── <span class="ft-dir">components/</span>
+│   ├── <span class="ft-dir">layout/</span>
+│   │   ├── <span class="ft-orange">sidebar.tsx</span>
+│   │   ├── <span class="ft-orange">top-header.tsx</span>
+│   │   ├── <span class="ft-orange">trial-banner.tsx</span>
+│   │   └── <span class="ft-orange">providers.tsx</span>
+│   ├── <span class="ft-dir">paywall/</span>
+│   │   └── <span class="ft-orange">paywall-gate.tsx</span>
+│   ├── <span class="ft-dir">icons/</span>
+│   │   └── <span class="ft-orange">item-icons.tsx</span>       <span class="ft-note"># SVGs por categoria</span>
+│   └── <span class="ft-dir">ui/</span>                      <span class="ft-note"># shadcn/ui components</span>
+│       ├── button, card, badge, avatar, dialog, input…
+│       ├── <span class="ft-orange">shuffle-grid.tsx</span>
+│       ├── <span class="ft-orange">grid-scan.tsx</span>
+│       └── <span class="ft-dir">*.stories.tsx</span>        <span class="ft-note"># Storybook stories</span>
+│
+├── <span class="ft-dir">hooks/</span>                       <span class="ft-note"># TanStack Query hooks</span>
+│   ├── <span class="ft-green">use-mudancas.ts</span>
+│   ├── <span class="ft-green">use-catalogo.ts</span>
+│   └── <span class="ft-green">use-carga.ts</span>
+│
+├── <span class="ft-dir">lib/</span>                         <span class="ft-note"># Server-side services</span>
+│   ├── <span class="ft-green">auth.ts</span>                  <span class="ft-note"># NextAuth config, JWT callbacks</span>
+│   ├── <span class="ft-green">db.ts</span>                    <span class="ft-note"># Prisma singleton</span>
+│   ├── <span class="ft-green">subscription.ts</span>          <span class="ft-note"># PLAN_LIMITS, feature checks</span>
+│   ├── <span class="ft-green">stripe.ts</span>                <span class="ft-note"># Stripe lazy proxy, sessions</span>
+│   ├── <span class="ft-green">email.ts</span>                 <span class="ft-note"># Resend client</span>
+│   ├── <span class="ft-green">validations.ts</span>           <span class="ft-note"># Zod schemas</span>
+│   └── <span class="ft-green">utils.ts</span>                 <span class="ft-note"># cn() + helpers</span>
+│
+├── <span class="ft-dir">prisma/</span>
+│   ├── <span class="ft-orange">schema.prisma</span>            <span class="ft-note"># DB schema — 9 models, 3 enums</span>
+│   ├── <span class="ft-dir">migrations/</span>
+│   └── <span class="ft-dir">seed.ts</span>                  <span class="ft-note"># Seed data (itens, caminhoes, transportadoras)</span>
+│
+├── <span class="ft-dir">types/</span>                       <span class="ft-note"># TypeScript type overrides</span>
+│
+├── <span class="ft-orange">middleware.ts</span>                <span class="ft-note"># Edge Function (&lt;1MB) — cookie check</span>
+├── <span class="ft-orange">next.config.ts</span>
+├── <span class="ft-orange">components.json</span>              <span class="ft-note"># shadcn/ui config</span>
+├── <span class="ft-orange">tsconfig.json</span>                <span class="ft-note"># strict mode</span>
+└── <span class="ft-orange">vitest.config.ts</span>             <span class="ft-note"># Unit tests</span>
+  </div>
+
+  <p class="section-heading" style="margin-top:28px">Variáveis de Ambiente</p>
+  <div class="card-grid">
+    <div class="card c-navy"><div class="card-title">DATABASE_URL</div><div class="card-sub">Neon PostgreSQL connection string</div></div>
+    <div class="card c-navy"><div class="card-title">NEXTAUTH_SECRET</div><div class="card-sub">JWT signing secret</div></div>
+    <div class="card c-navy"><div class="card-title">NEXTAUTH_URL</div><div class="card-sub">App base URL (produção)</div></div>
+    <div class="card c-navy"><div class="card-title">GOOGLE_CLIENT_ID / SECRET</div><div class="card-sub">Google Cloud Console OAuth credentials</div></div>
+    <div class="card c-navy"><div class="card-title">RESEND_API_KEY</div><div class="card-sub">Resend email service</div></div>
+    <div class="card c-navy"><div class="card-title">STRIPE_SECRET_KEY</div><div class="card-sub">Stripe server-side key</div></div>
+    <div class="card c-navy"><div class="card-title">STRIPE_WEBHOOK_SECRET</div><div class="card-sub">Webhook signature verification</div></div>
+    <div class="card c-navy"><div class="card-title">NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</div><div class="card-sub">Stripe client-side key</div></div>
+    <div class="card c-navy"><div class="card-title">STRIPE_PRO_PRICE_ID</div><div class="card-sub">Stripe Price ID para plano PRO</div></div>
+  </div>
+
+</section>
+
+<!-- ══ FOOTER ═══════════════════════════════════════════════ -->
+<footer style="text-align:center;padding:28px;font-size:.78rem;color:var(--gray);border-top:1px solid var(--border);margin-top:8px">
+  MudaFácil &mdash; Arquitetura do Sistema &mdash; Next.js 14+ | Auth.js v5 | Prisma 6 | Stripe v20 | Neon PostgreSQL (sa-east-1)
+</footer>
+
+<script>
+  function showTab(id, btn) {
+    // Hide all panels
+    document.querySelectorAll('.tab-content').forEach(function(el) {
+      el.classList.remove('active');
+    });
+    // Deactivate all buttons
+    document.querySelectorAll('.tab-btn').forEach(function(el) {
+      el.classList.remove('active');
+    });
+    // Show selected
+    document.getElementById('tab-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+</script>
+
+</body>
+</html>
