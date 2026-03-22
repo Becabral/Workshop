@@ -46,7 +46,7 @@ function HeroSection() {
         </p>
 
         <div className="mt-8 flex items-center gap-6">
-          <a href="#projetos" className="inline-flex items-center px-6 py-3 rounded-full bg-[#D4FF00] text-[#1a1a1a] text-sm font-semibold hover:bg-[#c5ee00] transition">
+          <a href="#projetos" className="inline-flex items-center px-6 py-3 rounded-full bg-[#D4FF00] text-white text-sm font-semibold hover:bg-[#c5ee00] transition">
             Ver projetos
           </a>
           <a href="#contato" className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition">
@@ -71,13 +71,13 @@ function CredibilitySection() {
   ];
 
   return (
-    <section className="bg-[#f5f5f0] py-16">
+    <section className="bg-[#1a1a1a] py-16">
       <div className="mx-auto max-w-6xl px-8">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {stats.map((stat) => (
             <div key={stat.label}>
-              <p className="text-2xl sm:text-3xl font-light text-gray-300">{stat.value}</p>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-gray-400">{stat.label}</p>
+              <p className="text-2xl sm:text-3xl font-light text-white/80">{stat.value}</p>
+              <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-gray-500">{stat.label}</p>
             </div>
           ))}
         </div>
@@ -134,18 +134,18 @@ function ProjectsSection() {
   ];
 
   return (
-    <section id="projetos" className="bg-[#f5f5f0] py-24">
+    <section id="projetos" className="bg-[#1a1a1a] py-24">
       <div className="mx-auto max-w-6xl px-8">
         <div className="flex items-start justify-between mb-16">
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#D4FF00]">
               Portfólio
             </p>
-            <h2 className="text-4xl sm:text-5xl font-bold text-[#1a1a1a] tracking-tight">
+            <h2 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
               Projetos selecionados
             </h2>
           </div>
-          <p className="hidden md:block text-right text-xs font-semibold uppercase tracking-wider text-gray-400 max-w-[160px]">
+          <p className="hidden md:block text-right text-xs font-semibold uppercase tracking-wider text-gray-500 max-w-[160px]">
             Foco em impacto e excelência técnica.
           </p>
         </div>
@@ -188,32 +188,32 @@ function AboutSection() {
   const skills = ["DESIGN SYSTEMS", "ESTRATÉGIA DE PRODUTO", "DIREÇÃO DE ARTE", "AI INTEGRATION"];
 
   return (
-    <section id="sobre" className="bg-[#f5f5f0] py-24 border-t border-gray-200">
+    <section id="sobre" className="bg-[#1a1a1a] py-24 border-t border-white/5">
       <div className="mx-auto max-w-6xl px-8">
         <div className="grid md:grid-cols-2 gap-16">
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#D4FF00]">
               Sobre
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#1a1a1a] leading-tight">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white leading-tight">
               Design como ferramenta de negócio.
             </h2>
           </div>
           <div>
-            <p className="text-sm text-gray-600 leading-relaxed mb-4">
+            <p className="text-sm text-gray-400 leading-relaxed mb-4">
               Acredito que o design de produto não se trata apenas de estética, mas de como as coisas funcionam e de como elas geram valor real para as pessoas e para os negócios.
             </p>
-            <p className="text-sm text-gray-600 leading-relaxed mb-4">
-              Com mais de 16 anos de estrada, desenvolvi um olhar crítico que une a <span className="text-[#1a1a1a] font-medium">direção criativa</span> com o rigor técnico da <span className="text-[#1a1a1a] font-medium underline">construção de interfaces</span>. Meu foco está em criar soluções que sejam escaláveis, intuitivas e esteticamente superiores.
+            <p className="text-sm text-gray-400 leading-relaxed mb-4">
+              Com mais de 16 anos de estrada, desenvolvi um olhar crítico que une a <span className="text-white font-medium">direção criativa</span> com o rigor técnico da <span className="text-white font-medium underline">construção de interfaces</span>. Meu foco está em criar soluções que sejam escaláveis, intuitivas e esteticamente superiores.
             </p>
-            <p className="text-sm text-gray-600 leading-relaxed mb-8">
-              Atualmente, exploro como a <span className="text-[#1a1a1a] font-medium underline">Inteligência Artificial</span> pode ser integrada ao processo de design para potencializar a criatividade e otimizar a execução, sem nunca perder a essência do pensamento estratégico humano.
+            <p className="text-sm text-gray-400 leading-relaxed mb-8">
+              Atualmente, exploro como a <span className="text-white font-medium underline">Inteligência Artificial</span> pode ser integrada ao processo de design para potencializar a criatividade e otimizar a execução, sem nunca perder a essência do pensamento estratégico humano.
             </p>
             <div className="flex flex-wrap gap-3">
               {skills.map((skill) => (
                 <span
                   key={skill}
-                  className="rounded-full border border-gray-300 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500"
+                  className="rounded-full border border-gray-600 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400"
                 >
                   {skill}
                 </span>
@@ -251,7 +251,7 @@ function ProcessSection() {
   ];
 
   return (
-    <section id="processo" className="bg-[#f5f5f0] py-24 border-t border-gray-200">
+    <section id="processo" className="bg-[#1a1a1a] py-24 border-t border-white/5">
       <div className="mx-auto max-w-6xl px-8">
         <div className="text-center mb-12">
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#D4FF00]">
@@ -287,10 +287,10 @@ function InsightsSection() {
   ];
 
   return (
-    <section id="insights" className="bg-[#f5f5f0] py-24 border-t border-gray-200">
+    <section id="insights" className="bg-[#1a1a1a] py-24 border-t border-white/5">
       <div className="mx-auto max-w-6xl px-8">
         <div className="flex items-start justify-between mb-12">
-          <h2 className="text-3xl font-bold text-[#1a1a1a]">Insights & Notas</h2>
+          <h2 className="text-3xl font-bold text-white">Insights & Notas</h2>
           <a href="#" className="text-xs font-semibold uppercase tracking-wider text-[#D4FF00] hover:underline">
             Ver todos
           </a>
@@ -313,7 +313,7 @@ function InsightsSection() {
 
 function CTASection() {
   return (
-    <section id="contato" className="bg-[#f5f5f0] py-32">
+    <section id="contato" className="bg-[#1a1a1a] py-32">
       <div className="mx-auto max-w-6xl px-8 text-center">
         <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-200 italic leading-tight">
           Vamos construir<br />algo bom juntos.
@@ -323,7 +323,7 @@ function CTASection() {
             Entrar em contato
           </a>
           <span className="text-gray-400">ou</span>
-          <a href="#" className="text-lg text-gray-400 hover:text-gray-600 transition">
+          <a href="#" className="text-lg text-gray-400 hover:text-gray-400 transition">
             Ver LinkedIn
           </a>
         </div>
@@ -349,7 +349,7 @@ function Footer() {
               <a href="#" className="hover:text-white transition">Instagram</a>
               <a href="#" className="hover:text-white transition">Email</a>
             </div>
-            <p className="mt-3 text-xs text-gray-600">
+            <p className="mt-3 text-xs text-gray-400">
               &copy; 2024 Gilberto Prado. Senior Product Designer.
             </p>
           </div>
