@@ -65,6 +65,12 @@ function getGoogleMapsDirectionsUrl(origin: string, destination: string): string
   return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
 }
 
+function getTodayDateInputValue() {
+  const now = new Date();
+  const timezoneOffset = now.getTimezoneOffset() * 60_000;
+  return new Date(now.getTime() - timezoneOffset).toISOString().split("T")[0];
+}
+
 // ─── Nova Mudanca Modal ──────────────────────────────────
 
 function NovaMudancaModal({
@@ -78,6 +84,7 @@ function NovaMudancaModal({
   const [destino, setDestino] = useState("");
   const [data, setData] = useState("");
   const createMudanca = useCreateMudanca();
+  const minDate = getTodayDateInputValue();
 
   if (!open) return null;
 
@@ -150,6 +157,7 @@ function NovaMudancaModal({
               type="date"
               value={data}
               onChange={(e) => setData(e.target.value)}
+              min={minDate}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#F37021] focus:outline-none focus:ring-2 focus:ring-[#F37021]/20"
             />
           </div>

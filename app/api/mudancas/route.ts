@@ -1,8 +1,104 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import {
+  activeDbMudancaStatuses,
+  serializeMudancaStatus,
+} from "@/lib/mudanca-status";
 import { checkUsageLimit } from "@/lib/subscription";
 import { mudancaSchema } from "@/lib/validations";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
+import type { UserWithPlan } from "@/types";
+
+type MudancaRow = {
+  id: string;
+  userId: string;
+  enderecoOrigem: string;
+  enderecoDestino: string;
+  dataDesejada: Date | null;
+  caminhaoId: string | null;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  cotacoesCount: bigint | number;
+  caminhaoNome: string | null;
+  caminhaoTipo: string | null;
+  caminhaoCapacidadeM3: number | null;
+  caminhaoCapacidadeKg: number | null;
+  caminhaoComprimentoCm: number | null;
+  caminhaoLarguraCm: number | null;
+  caminhaoAlturaCm: number | null;
+  caminhaoImagemUrl: string | null;
+};
+
+function serializeMudancaRow(row: MudancaRow) {
+  return serializeMudancaStatus({
+    id: row.id,
+    userId: row.userId,
+    enderecoOrigem: row.enderecoOrigem,
+    enderecoDestino: row.enderecoDestino,
+    dataDesejada: row.dataDesejada,
+    caminhaoId: row.caminhaoId,
+    status: row.status,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    caminhao: row.caminhaoId
+      ? {
+          id: row.caminhaoId,
+          nome: row.caminhaoNome,
+          tipo: row.caminhaoTipo,
+          capacidadeM3: row.caminhaoCapacidadeM3,
+          capacidadeKg: row.caminhaoCapacidadeKg,
+          comprimentoCm: row.caminhaoComprimentoCm,
+          larguraCm: row.caminhaoLarguraCm,
+          alturaCm: row.caminhaoAlturaCm,
+          imagemUrl: row.caminhaoImagemUrl,
+          createdAt: row.createdAt,
+        }
+      : null,
+    cargaLayout: null,
+    _count: {
+      cotacoes:
+        typeof row.cotacoesCount === "bigint"
+          ? Number(row.cotacoesCount)
+          : row.cotacoesCount,
+    },
+  });
+}
+
+async function getMudancasByUserId(userId: string) {
+  const rows = await db.$queryRaw<MudancaRow[]>(Prisma.sql`
+    SELECT
+      m."id",
+      m."userId",
+      m."enderecoOrigem",
+      m."enderecoDestino",
+      m."dataDesejada",
+      m."caminhaoId",
+      m."status"::text AS "status",
+      m."createdAt",
+      m."updatedAt",
+      COUNT(c."id") AS "cotacoesCount",
+      cam."nome" AS "caminhaoNome",
+      cam."tipo" AS "caminhaoTipo",
+      cam."capacidadeM3" AS "caminhaoCapacidadeM3",
+      cam."capacidadeKg" AS "caminhaoCapacidadeKg",
+      cam."comprimentoCm" AS "caminhaoComprimentoCm",
+      cam."larguraCm" AS "caminhaoLarguraCm",
+      cam."alturaCm" AS "caminhaoAlturaCm",
+      cam."imagemUrl" AS "caminhaoImagemUrl"
+    FROM "Mudanca" m
+    LEFT JOIN "Cotacao" c ON c."mudancaId" = m."id"
+    LEFT JOIN "Caminhao" cam ON cam."id" = m."caminhaoId"
+    WHERE m."userId" = ${userId}
+    GROUP BY
+      m."id",
+      cam."id"
+    ORDER BY m."createdAt" DESC
+  `);
+
+  return rows.map(serializeMudancaRow);
+}
 
 export async function GET() {
   const session = await auth();
@@ -12,18 +108,7 @@ export async function GET() {
   }
 
   try {
-    const mudancas = await db.mudanca.findMany({
-      where: { userId: session.user.id },
-      include: {
-        caminhao: true,
-        cargaLayout: true,
-        _count: {
-          select: { cotacoes: true },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
+    const mudancas = await getMudancasByUserId(session.user.id);
     return NextResponse.json(mudancas);
   } catch (error) {
     console.error("GET /api/mudancas error:", error);
@@ -49,29 +134,34 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check plan limit for active mudanças
-    const user = await db.user.findUniqueOrThrow({
-      where: { id: session.user.id },
-      select: {
-        id: true,
-        plan: true,
-        trialEndsAt: true,
-        stripeCurrentPeriodEnd: true,
-        stripeCustomerId: true,
-        stripePriceId: true,
-        stripeSubscriptionId: true,
-        name: true,
-        email: true,
-        image: true,
-      },
-    });
+    const user: UserWithPlan = {
+      id: session.user.id,
+      name: session.user.name ?? null,
+      email: session.user.email,
+      image: session.user.image ?? null,
+      plan: (session.user.plan as UserWithPlan["plan"]) ?? "FREE",
+      trialEndsAt: session.user.trialEndsAt
+        ? new Date(session.user.trialEndsAt)
+        : null,
+      stripeCustomerId: session.user.stripeCustomerId ?? null,
+      stripePriceId: null,
+      stripeSubscriptionId: session.user.stripeSubscriptionId ?? null,
+      stripeCurrentPeriodEnd: session.user.stripeCurrentPeriodEnd
+        ? new Date(session.user.stripeCurrentPeriodEnd)
+        : null,
+    };
 
-    const activeCount = await db.mudanca.count({
-      where: {
-        userId: session.user.id,
-        status: { in: ["RASCUNHO", "COTANDO", "CONFIRMADA"] },
-      },
-    });
+    const activeRows = await db.$queryRaw<Array<{ status: string }>>(Prisma.sql`
+      SELECT "status"::text AS "status"
+      FROM "Mudanca"
+      WHERE "userId" = ${session.user.id}
+    `);
+
+    const activeCount = activeRows.filter((mudanca) =>
+      activeDbMudancaStatuses.includes(
+        mudanca.status as (typeof activeDbMudancaStatuses)[number]
+      )
+    ).length;
 
     const limitCheck = checkUsageLimit(user, "mudancasAtivas", activeCount);
 
@@ -88,22 +178,34 @@ export async function POST(request: Request) {
 
     const { enderecoOrigem, enderecoDestino, dataDesejada, caminhaoId } = parsed.data;
 
-    const mudanca = await db.mudanca.create({
-      data: {
-        userId: session.user.id,
-        enderecoOrigem,
-        enderecoDestino,
-        dataDesejada: dataDesejada ? new Date(dataDesejada) : null,
-        caminhaoId: caminhaoId ?? null,
-      },
-      include: {
-        caminhao: true,
-        cargaLayout: true,
-        _count: {
-          select: { cotacoes: true },
-        },
-      },
-    });
+    const mudancaId = crypto.randomUUID();
+
+    await db.$executeRaw(
+      Prisma.sql`
+        INSERT INTO "Mudanca"
+          ("id", "userId", "enderecoOrigem", "enderecoDestino", "dataDesejada", "itens", "caminhaoId", "status", "createdAt", "updatedAt")
+        VALUES
+          (
+            ${mudancaId},
+            ${session.user.id},
+            ${enderecoOrigem},
+            ${enderecoDestino},
+            ${dataDesejada ? new Date(dataDesejada) : new Date()},
+            ${JSON.stringify([])}::jsonb,
+            ${caminhaoId ?? null},
+            CAST('DRAFT' AS "MudancaStatus"),
+            NOW(),
+            NOW()
+          )
+      `
+    );
+
+    const mudancas = await getMudancasByUserId(session.user.id);
+    const mudanca = mudancas.find((item) => item.id === mudancaId);
+
+    if (!mudanca) {
+      throw new Error("Mudanca criada, mas nao encontrada para serializacao");
+    }
 
     return NextResponse.json(mudanca, { status: 201 });
   } catch (error) {

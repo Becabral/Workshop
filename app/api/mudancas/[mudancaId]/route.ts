@@ -1,5 +1,10 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import {
+  mapUiMudancaStatusToDb,
+  serializeMudancaStatus,
+  type UiMudancaStatus,
+} from "@/lib/mudanca-status";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -50,7 +55,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    return NextResponse.json(mudanca);
+    return NextResponse.json(serializeMudancaStatus(mudanca));
   } catch (error) {
     console.error(`GET /api/mudancas/${mudancaId} error:`, error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -102,7 +107,9 @@ export async function PATCH(request: Request, { params }: RouteParams) {
           dataDesejada: dataDesejada ? new Date(dataDesejada) : null,
         }),
         ...(caminhaoId !== undefined && { caminhaoId }),
-        ...(status !== undefined && { status }),
+        ...(status !== undefined && {
+          status: mapUiMudancaStatusToDb(status as UiMudancaStatus) as never,
+        }),
       },
       include: {
         caminhao: true,
@@ -113,7 +120,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       },
     });
 
-    return NextResponse.json(mudanca);
+    return NextResponse.json(serializeMudancaStatus(mudanca));
   } catch (error) {
     console.error(`PATCH /api/mudancas/${mudancaId} error:`, error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

@@ -28,6 +28,22 @@ export const mudancaSchema = z.object({
     .max(300, "Endereço muito longo"),
   dataDesejada: z.string().datetime().optional(),
   caminhaoId: z.string().cuid().optional(),
+}).superRefine((data, ctx) => {
+  if (!data.dataDesejada) return;
+
+  const selectedDate = new Date(data.dataDesejada);
+  const today = new Date();
+
+  selectedDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  if (selectedDate < today) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["dataDesejada"],
+      message: "A data desejada não pode estar no passado",
+    });
+  }
 });
 
 export const itemSchema = z.object({

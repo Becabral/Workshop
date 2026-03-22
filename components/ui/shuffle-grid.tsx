@@ -6,17 +6,18 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 const shuffle = (array: (typeof squareData)[0][]) => {
-  let currentIndex = array.length,
+  const shuffled = [...array];
+  let currentIndex = shuffled.length,
     randomIndex;
   while (currentIndex != 0) {
     randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex--;
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
-      array[currentIndex],
+    [shuffled[currentIndex], shuffled[randomIndex]] = [
+      shuffled[randomIndex],
+      shuffled[currentIndex],
     ];
   }
-  return array;
+  return shuffled;
 };
 
 const squareData = [
@@ -166,8 +167,8 @@ const squareData = [
   },
 ];
 
-const generateSquares = () => {
-  return shuffle(squareData).map((sq) => (
+const renderSquares = (items: (typeof squareData)[0][]) => {
+  return items.map((sq) => (
     <motion.div
       key={sq.id}
       layout
@@ -184,21 +185,22 @@ const generateSquares = () => {
 
 const ShuffleGrid = () => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [squares, setSquares] = useState(generateSquares());
+  const [squares, setSquares] = useState(() => renderSquares(squareData));
 
   useEffect(() => {
+    const shuffleSquares = () => {
+      setSquares(renderSquares(shuffle(squareData)));
+      timeoutRef.current = setTimeout(shuffleSquares, 3000);
+    };
+
     shuffleSquares();
+
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
     };
   }, []);
-
-  const shuffleSquares = () => {
-    setSquares(generateSquares());
-    timeoutRef.current = setTimeout(shuffleSquares, 3000);
-  };
 
   return (
     <div className="grid grid-cols-6 grid-rows-6 h-[500px] gap-1">
